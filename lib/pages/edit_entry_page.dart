@@ -11,7 +11,7 @@ import 'dart:typed_data';
 // Removed painter package; now using custom DrawingPage with JSON strokes
 
 import '../models/diary_entry.dart';
-import './drawing_page.dart';
+import 'drawing_editor.dart';
 import '../services/storage_service.dart';
 import '../services/mobile_storage_service.dart';
 
@@ -29,6 +29,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
   DateTime _date = DateTime.now();
   Uint8List? _drawingBytes;
   String? _drawingJson; // editable strokes data
+  final GlobalKey<DrawingEditorState> _drawingKey = GlobalKey<DrawingEditorState>();
   final _mobileStorage = MobileStorageService();
 
   @override
@@ -62,19 +63,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
     super.dispose();
   }
 
-  Future<void> _openDrawingPage() async {
-    final result = await Navigator.push<DrawingResult>(
-      context,
-      MaterialPageRoute(builder: (context) => DrawingPage(initialDrawingJson: _drawingJson)),
-    );
-
-    if (result != null) {
-      setState(() {
-        _drawingBytes = result.pngBytes;
-        _drawingJson = result.drawingJson;
-      });
-    }
-  }
+  // Inline drawing editor is used instead of navigating to another page.
 
 
   Future<void> _pickDate() async {
@@ -93,6 +82,13 @@ class _EditEntryPageState extends State<EditEntryPage> {
     String? imagePath = widget.entry?.imagePath;
     String? drawingBase64 = widget.entry?.drawingBase64;
     String? drawingJson = widget.entry?.drawingJson;
+
+    // Export from inline editor if it has content
+    if (_drawingKey.currentState != null && !_drawingKey.currentState!.isEmpty) {
+      final result = await _drawingKey.currentState!.exportResult();
+      _drawingBytes = result.pngBytes;
+      _drawingJson = result.drawingJson;
+    }
 
     if (_drawingBytes != null) {
       if (kIsWeb) {
@@ -129,24 +125,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
       children: [
         Text('今日の絵', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
-        Container(
-          height: 200,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: _drawingBytes != null
-                ? Image.memory(_drawingBytes!)
-                : const Text('絵がありません'),
-          ),
-        ),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(
-          onPressed: _openDrawingPage,
-          icon: const Icon(Icons.edit),
-          label: const Text('絵を描く・編集する'),
-        ),
+        DrawingEditor(key: _drawingKey, initialDrawingJson: _drawingJson),
       ],
     );
   }
