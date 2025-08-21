@@ -41,7 +41,10 @@ class _EntriesPageState extends State<EntriesPage> {
   Future<void> _addEntry() async {
     final entry = await Navigator.push<DiaryEntry>(
       context,
-      MaterialPageRoute(builder: (_) => const EditEntryPage()),
+      MaterialPageRoute(
+        builder: (_) => const EditEntryPage(),
+        fullscreenDialog: true,
+      ),
     );
     if (entry != null) {
       final entries = await _storage.loadEntries();
@@ -54,7 +57,10 @@ class _EntriesPageState extends State<EntriesPage> {
   Future<void> _editEntry(DiaryEntry entry) async {
     final updated = await Navigator.push<DiaryEntry>(
       context,
-      MaterialPageRoute(builder: (_) => EditEntryPage(entry: entry)),
+      MaterialPageRoute(
+        builder: (_) => EditEntryPage(entry: entry),
+        fullscreenDialog: true,
+      ),
     );
     // Always refresh after returning (entry may have been deleted)
     if (updated != null) {

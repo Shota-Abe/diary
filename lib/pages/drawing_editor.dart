@@ -24,7 +24,7 @@ class DrawingEditor extends StatefulWidget {
 class DrawingEditorState extends State<DrawingEditor> {
   final _ctrl = _DrawingController();
   final _repaintKey = GlobalKey();
-  Color _bg = const Color(0xFFF2F2F2);
+  Color _bg = Colors.white;
 
   @override
   void initState() {
@@ -119,11 +119,7 @@ class DrawingEditorState extends State<DrawingEditor> {
                 onChanged: (v) => setState(() => _ctrl.thickness = v),
               ),
             ),
-            IconButton(
-              tooltip: 'クリア',
-              icon: const Icon(Icons.delete_sweep_outlined),
-              onPressed: clear,
-            ),
+            TextButton(onPressed: clear, child: Text('クリア')),
           ],
         ),
         AspectRatio(
@@ -173,7 +169,7 @@ class DrawingThumbnail extends StatelessWidget {
       topLeft: Radius.circular(12),
       bottomLeft: Radius.circular(12),
     ),
-    this.backgroundColor = const Color(0xFFF2F2F2),
+    this.backgroundColor = Colors.white,
   });
 
   @override

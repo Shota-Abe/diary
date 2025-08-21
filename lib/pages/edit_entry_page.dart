@@ -107,11 +107,16 @@ class _EditEntryPageState extends State<EditEntryPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.entry == null ? '新規作成' : '編集'),
+        centerTitle: true,
+        leading: TextButton(
+          onPressed: () => Navigator.pop(context, null),
+          child: const Text('キャンセル'),
+        ),
+        leadingWidth: 96,
         actions: [
           if (widget.entry != null)
-            IconButton(
-              tooltip: '削除',
-              icon: const Icon(Icons.delete_outline),
+            TextButton(
+              child: Text('削除'),
               onPressed: () async {
                 final ok = await showDialog<bool>(
                   context: context,
@@ -142,7 +147,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
                 }
               },
             ),
-          IconButton(onPressed: _save, icon: const Icon(Icons.check)),
+          TextButton(onPressed: _save, child: const Text('保存')),
         ],
       ),
       body: Form(
@@ -178,12 +183,6 @@ class _EditEntryPageState extends State<EditEntryPage> {
               ),
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? '内容を入力してください' : null,
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: _save,
-              icon: const Icon(Icons.save),
-              label: const Text('保存'),
             ),
           ],
         ),
