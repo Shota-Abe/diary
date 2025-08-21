@@ -55,13 +55,14 @@ class _EntriesPageState extends State<EntriesPage> {
       context,
       MaterialPageRoute(builder: (_) => EditEntryPage(entry: entry)),
     );
+    // Always refresh after returning (entry may have been deleted)
     if (updated != null) {
       final entries = await _storage.loadEntries();
       final idx = entries.indexWhere((e) => e.id == updated.id);
       if (idx != -1) entries[idx] = updated;
       await _storage.saveEntries(entries);
-      await _refresh();
     }
+    await _refresh();
   }
 
   Future<void> _deleteEntry(DiaryEntry entry) async {
@@ -165,6 +166,7 @@ class _EntriesPageState extends State<EntriesPage> {
                         entry: e,
                         onTap: () => _editEntry(e),
                         onLongPress: () => _deleteEntry(e),
+                        onDelete: () => _deleteEntry(e),
                       )),
                   const SizedBox(height: 96),
                 ],
@@ -184,6 +186,7 @@ class _EntriesPageState extends State<EntriesPage> {
                   entry: e,
                   onTap: () => _editEntry(e),
                   onLongPress: () => _deleteEntry(e),
+                  onDelete: () => _deleteEntry(e),
                 );
               },
             ),
@@ -203,8 +206,9 @@ class _EntryCard extends StatelessWidget {
   final DiaryEntry entry;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+  final VoidCallback onDelete;
 
-  const _EntryCard({required this.entry, required this.onTap, required this.onLongPress});
+  const _EntryCard({required this.entry, required this.onTap, required this.onLongPress, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -253,6 +257,11 @@ class _EntryCard extends StatelessWidget {
                   ],
                 ),
               ),
+            ),
+            IconButton(
+              tooltip: '削除',
+              icon: const Icon(Icons.delete_outline),
+              onPressed: onDelete,
             ),
           ],
         ),

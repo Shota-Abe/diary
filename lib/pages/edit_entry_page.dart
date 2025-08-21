@@ -12,6 +12,7 @@ import 'dart:typed_data';
 
 import '../models/diary_entry.dart';
 import './drawing_page.dart';
+import '../services/storage_service.dart';
 import '../services/mobile_storage_service.dart';
 
 class EditEntryPage extends StatefulWidget {
@@ -156,6 +157,38 @@ class _EditEntryPageState extends State<EditEntryPage> {
       appBar: AppBar(
         title: Text(widget.entry == null ? '新規作成' : '編集'),
         actions: [
+          if (widget.entry != null)
+            IconButton(
+              tooltip: '削除',
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () async {
+                final ok = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('削除しますか？'),
+                    content: const Text('この操作は元に戻せません'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('キャンセル')),
+                      FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('削除')),
+                    ],
+                  ),
+                );
+                if (ok == true && mounted) {
+                  // 実データを削除
+                  final storage = StorageService();
+                  final list = await storage.loadEntries();
+                  list.removeWhere((e) => e.id == widget.entry!.id);
+                  await storage.saveEntries(list);
+                  // 可能なら画像ファイルも削除
+                  final path = widget.entry!.imagePath;
+                  if (path != null) {
+                    try { File(path).exists().then((exists) { if (exists) File(path).delete(); }); } catch (_) {}
+                  }
+                  if (!mounted) return;
+                  Navigator.pop(context, null);
+                }
+              },
+            ),
           IconButton(onPressed: _save, icon: const Icon(Icons.check)),
         ],
       ),
