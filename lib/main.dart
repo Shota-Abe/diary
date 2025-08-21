@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'pages/entries_page.dart';
+import 'pages/main_page.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -21,17 +21,14 @@ class MainApp extends StatelessWidget {
         useMaterial3: true,
       ),
       locale: const Locale('ja', 'JP'),
-      supportedLocales: const [
-        Locale('ja', 'JP'),
-        Locale('en', 'US'),
-      ],
+      supportedLocales: const [Locale('ja', 'JP'), Locale('en', 'US')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
       debugShowCheckedModeBanner: false,
-      home: const EntriesPage(),
+      home: const MainPage(),
     );
   }
 }

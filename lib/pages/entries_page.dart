@@ -107,7 +107,7 @@ class _EntriesPageState extends State<EntriesPage> {
           IconButton(
             tooltip: _calendarMode ? 'リスト表示に切替' : 'カレンダー表示に切替',
             onPressed: () => setState(() => _calendarMode = !_calendarMode),
-            icon: Icon(_calendarMode ? Icons.view_list : Icons.calendar_month),
+            icon: Icon(_calendarMode ? Icons.list_alt : Icons.calendar_month),
           ),
         ],
       ),
@@ -187,18 +187,6 @@ class _EntriesPageState extends State<EntriesPage> {
                     ),
                   ),
                   const Divider(height: 0),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    child: Text(
-                      selected != null
-                          ? DateFormat('yyyy/MM/dd').format(selected)
-                          : '日付を選択してください',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
                   ...selectedEntries.map(
                     (e) => _EntryCard(
                       entry: e,
