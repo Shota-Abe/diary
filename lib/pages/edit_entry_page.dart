@@ -8,11 +8,10 @@ import 'package:intl/intl.dart';
 
 import 'dart:typed_data';
 
-import 'package:painter/painter.dart';
+// Removed painter package; now using custom DrawingPage with JSON strokes
 
 import '../models/diary_entry.dart';
 import './drawing_page.dart';
-import '../services/storage_service.dart';
 import '../services/mobile_storage_service.dart';
 
 class EditEntryPage extends StatefulWidget {
@@ -28,21 +27,18 @@ class _EditEntryPageState extends State<EditEntryPage> {
   final _contentCtrl = TextEditingController();
   DateTime _date = DateTime.now();
   Uint8List? _drawingBytes;
-  late PainterController _painterCtrl;
-  final _storage = StorageService();
+  String? _drawingJson; // editable strokes data
   final _mobileStorage = MobileStorageService();
 
   @override
   void initState() {
     super.initState();
-    _painterCtrl = PainterController();
-    _painterCtrl.backgroundColor = Colors.grey.shade200;
-    _painterCtrl.thickness = 5.0;
 
     final e = widget.entry;
     if (e != null) {
       _contentCtrl.text = e.content;
       _date = e.date;
+      _drawingJson = e.drawingJson;
       if (kIsWeb) {
         if (e.drawingBase64 != null) {
           _drawingBytes = base64Decode(e.drawingBase64!);
@@ -62,22 +58,19 @@ class _EditEntryPageState extends State<EditEntryPage> {
   @override
   void dispose() {
     _contentCtrl.dispose();
-    _painterCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _openDrawingPage() async {
-    final result = await Navigator.push<Uint8List>(
+    final result = await Navigator.push<DrawingResult>(
       context,
-      MaterialPageRoute(builder: (context) => DrawingPage(controller: _painterCtrl)),
+      MaterialPageRoute(builder: (context) => DrawingPage(initialDrawingJson: _drawingJson)),
     );
 
     if (result != null) {
       setState(() {
-        _drawingBytes = result;
-        _painterCtrl = PainterController(); // Reset controller for next time
-        _painterCtrl.backgroundColor = Colors.grey.shade200;
-        _painterCtrl.thickness = 5.0;
+        _drawingBytes = result.pngBytes;
+        _drawingJson = result.drawingJson;
       });
     }
   }
@@ -98,6 +91,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
 
     String? imagePath = widget.entry?.imagePath;
     String? drawingBase64 = widget.entry?.drawingBase64;
+    String? drawingJson = widget.entry?.drawingJson;
 
     if (_drawingBytes != null) {
       if (kIsWeb) {
@@ -107,6 +101,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
         imagePath = await _mobileStorage.saveImageBytes(_drawingBytes!);
         drawingBase64 = null; // Do not use base64 for mobile
       }
+      drawingJson = _drawingJson; // save editable strokes
     }
 
     final entry = (widget.entry ??
@@ -120,6 +115,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
       content: _contentCtrl.text.trim(),
       imagePath: imagePath,
       drawingBase64: drawingBase64,
+      drawingJson: drawingJson,
     );
 
     if (!mounted) return;
