@@ -38,12 +38,15 @@ class DrawingEditorState extends State<DrawingEditor> {
 
   bool get isEmpty => _ctrl.strokes.isEmpty && _ctrl.current == null;
 
-  void clear() => setState(() => _ctrl
-    ..strokes.clear()
-    ..current = null);
+  void clear() => setState(
+    () => _ctrl
+      ..strokes.clear()
+      ..current = null,
+  );
 
   Future<DrawingResult> exportResult() async {
-    final boundary = _repaintKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    final boundary =
+        _repaintKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
     final image = await boundary.toImage(pixelRatio: 3.0);
     final data = await image.toByteData(format: ui.ImageByteFormat.png);
     final png = data!.buffer.asUint8List();
@@ -70,20 +73,30 @@ class DrawingEditorState extends State<DrawingEditor> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: [
-                          Colors.black,
-                          Colors.red,
-                          Colors.green,
-                          Colors.blue,
-                          Colors.orange,
-                          Colors.purple,
-                          Colors.brown,
-                        ]
-                            .map((c) => GestureDetector(
-                                  onTap: () => Navigator.pop(ctx, c),
-                                  child: Container(width: 28, height: 28, decoration: BoxDecoration(color: c, shape: BoxShape.circle)),
-                                ))
-                            .toList(),
+                        children:
+                            [
+                                  Colors.black,
+                                  Colors.red,
+                                  Colors.green,
+                                  Colors.blue,
+                                  Colors.orange,
+                                  Colors.purple,
+                                  Colors.brown,
+                                ]
+                                .map(
+                                  (c) => GestureDetector(
+                                    onTap: () => Navigator.pop(ctx, c),
+                                    child: Container(
+                                      width: 28,
+                                      height: 28,
+                                      decoration: BoxDecoration(
+                                        color: c,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                       ),
                     ],
                   ),
@@ -117,12 +130,17 @@ class DrawingEditorState extends State<DrawingEditor> {
           aspectRatio: 1,
           child: Container(
             margin: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(color: _bg, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey)),
+            decoration: BoxDecoration(
+              color: _bg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey),
+            ),
             child: RepaintBoundary(
               key: _repaintKey,
               child: GestureDetector(
                 onPanStart: (d) => setState(() => _ctrl.start(d.localPosition)),
-                onPanUpdate: (d) => setState(() => _ctrl.append(d.localPosition)),
+                onPanUpdate: (d) =>
+                    setState(() => _ctrl.append(d.localPosition)),
                 onPanEnd: (_) => setState(() => _ctrl.end()),
                 child: CustomPaint(
                   painter: _DrawingPainter(_ctrl.strokes, _ctrl.current),
@@ -139,6 +157,99 @@ class DrawingEditorState extends State<DrawingEditor> {
 
 // Removed standalone DrawingPage (navigation-based editor) since the editor is now inline.
 
+/// A lightweight, read-only thumbnail that renders a drawing from JSON strokes.
+/// Used for list cards where we only need a preview image generated on the fly.
+class DrawingThumbnail extends StatelessWidget {
+  final String drawingJson;
+  final double size;
+  final BorderRadius borderRadius;
+  final Color backgroundColor;
+
+  const DrawingThumbnail({
+    super.key,
+    required this.drawingJson,
+    this.size = 120,
+    this.borderRadius = const BorderRadius.only(
+      topLeft: Radius.circular(12),
+      bottomLeft: Radius.circular(12),
+    ),
+    this.backgroundColor = const Color(0xFFF2F2F2),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: borderRadius,
+      child: Container(
+        width: size,
+        height: size,
+        color: backgroundColor,
+        child: CustomPaint(painter: _ThumbnailPainter(drawingJson)),
+      ),
+    );
+  }
+}
+
+class _ThumbnailPainter extends CustomPainter {
+  final String json;
+  _ThumbnailPainter(this.json);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    try {
+      final list = jsonDecode(json) as List;
+      final strokes = list
+          .map((m) => _Stroke.fromMap(m as Map<String, dynamic>))
+          .toList();
+
+      if (strokes.isEmpty) return;
+
+      // Calculate bounds of all points
+      double minX = double.infinity;
+      double minY = double.infinity;
+      double maxX = -double.infinity;
+      double maxY = -double.infinity;
+      for (final s in strokes) {
+        for (final p in s.points) {
+          if (p.dx < minX) minX = p.dx;
+          if (p.dy < minY) minY = p.dy;
+          if (p.dx > maxX) maxX = p.dx;
+          if (p.dy > maxY) maxY = p.dy;
+        }
+      }
+
+      final contentW = (maxX - minX).abs();
+      final contentH = (maxY - minY).abs();
+      if (contentW <= 0 || contentH <= 0) {
+        _DrawingPainter(strokes, null).paint(canvas, size);
+        return;
+      }
+
+      final scale = (size.width / contentW)
+          .clamp(0.0, double.infinity)
+          .clamp(0.0, double.infinity);
+      final scaleY = (size.height / contentH).clamp(0.0, double.infinity);
+      final actualScale = scale < scaleY ? scale : scaleY;
+
+      final dx = (size.width - contentW * actualScale) / 2.0;
+      final dy = (size.height - contentH * actualScale) / 2.0;
+
+      canvas.save();
+      canvas.translate(dx, dy);
+      canvas.scale(actualScale, actualScale);
+      canvas.translate(-minX, -minY);
+      _DrawingPainter(strokes, null).paint(canvas, size);
+      canvas.restore();
+    } catch (_) {
+      // ignore invalid json
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ThumbnailPainter oldDelegate) =>
+      oldDelegate.json != json;
+}
+
 class _Stroke {
   _Stroke({required this.points, required this.color, required this.thickness});
   final List<Offset> points;
@@ -146,18 +257,20 @@ class _Stroke {
   final double thickness;
 
   Map<String, dynamic> toMap() => {
-        'color': color.value,
-        'thickness': thickness,
-        'points': points.map((p) => {'x': p.dx, 'y': p.dy}).toList(),
-      };
+    'color': color.value,
+    'thickness': thickness,
+    'points': points.map((p) => {'x': p.dx, 'y': p.dy}).toList(),
+  };
 
   static _Stroke fromMap(Map<String, dynamic> map) => _Stroke(
-        points: (map['points'] as List)
-            .map((m) => Offset((m['x'] as num).toDouble(), (m['y'] as num).toDouble()))
-            .toList(),
-        color: Color(map['color'] as int),
-        thickness: (map['thickness'] as num).toDouble(),
-      );
+    points: (map['points'] as List)
+        .map(
+          (m) => Offset((m['x'] as num).toDouble(), (m['y'] as num).toDouble()),
+        )
+        .toList(),
+    color: Color(map['color'] as int),
+    thickness: (map['thickness'] as num).toDouble(),
+  );
 }
 
 class _DrawingPainter extends CustomPainter {

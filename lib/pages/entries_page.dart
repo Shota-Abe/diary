@@ -1,14 +1,11 @@
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'dart:io';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../models/diary_entry.dart';
 import '../services/storage_service.dart';
 import 'edit_entry_page.dart';
+import 'drawing_editor.dart';
 
 class EntriesPage extends StatefulWidget {
   const EntriesPage({super.key});
@@ -28,7 +25,11 @@ class _EntriesPageState extends State<EntriesPage> {
   void initState() {
     super.initState();
     _future = _storage.loadEntries();
-    _selectedDay = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    _selectedDay = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
   }
 
   Future<void> _refresh() async {
@@ -72,8 +73,14 @@ class _EntriesPageState extends State<EntriesPage> {
         title: const Text('削除しますか？'),
         content: const Text('この操作は元に戻せません'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('キャンセル')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('削除')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('キャンセル'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('削除'),
+          ),
         ],
       ),
     );
@@ -117,7 +124,9 @@ class _EntriesPageState extends State<EntriesPage> {
 
           if (_calendarMode) {
             final selected = _selectedDay;
-            final selectedEntries = selected != null ? (byDay[selected] ?? []) : <DiaryEntry>[];
+            final selectedEntries = selected != null
+                ? (byDay[selected] ?? [])
+                : <DiaryEntry>[];
 
             return RefreshIndicator(
               onRefresh: _refresh,
@@ -129,7 +138,8 @@ class _EntriesPageState extends State<EntriesPage> {
                       firstDay: DateTime(2000, 1, 1),
                       lastDay: DateTime(2100, 12, 31),
                       focusedDay: _focusedDay,
-                      selectedDayPredicate: (day) => isSameDay(day, _selectedDay),
+                      selectedDayPredicate: (day) =>
+                          isSameDay(day, _selectedDay),
                       calendarFormat: CalendarFormat.month,
                       locale: 'ja_JP',
                       startingDayOfWeek: StartingDayOfWeek.monday,
@@ -139,7 +149,11 @@ class _EntriesPageState extends State<EntriesPage> {
                       },
                       onDaySelected: (selectedDay, focusedDay) {
                         setState(() {
-                          _selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+                          _selectedDay = DateTime(
+                            selectedDay.year,
+                            selectedDay.month,
+                            selectedDay.day,
+                          );
                           _focusedDay = focusedDay;
                         });
                       },
@@ -147,27 +161,46 @@ class _EntriesPageState extends State<EntriesPage> {
                         _focusedDay = focusedDay;
                       },
                       calendarStyle: CalendarStyle(
-                        markerDecoration: BoxDecoration(color: Theme.of(context).colorScheme.secondary, shape: BoxShape.circle),
-                        todayDecoration: BoxDecoration(color: Theme.of(context).colorScheme.tertiary, shape: BoxShape.circle),
-                        selectedDecoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),
+                        markerDecoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.secondary,
+                          shape: BoxShape.circle,
+                        ),
+                        todayDecoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.tertiary,
+                          shape: BoxShape.circle,
+                        ),
+                        selectedDecoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                      headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
+                      headerStyle: const HeaderStyle(
+                        formatButtonVisible: false,
+                        titleCentered: true,
+                      ),
                     ),
                   ),
                   const Divider(height: 0),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     child: Text(
-                      selected != null ? DateFormat('yyyy/MM/dd').format(selected) : '日付を選択してください',
+                      selected != null
+                          ? DateFormat('yyyy/MM/dd').format(selected)
+                          : '日付を選択してください',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
-                  ...selectedEntries.map((e) => _EntryCard(
-                        entry: e,
-                        onTap: () => _editEntry(e),
-                        onLongPress: () => _deleteEntry(e),
-                        onDelete: () => _deleteEntry(e),
-                      )),
+                  ...selectedEntries.map(
+                    (e) => _EntryCard(
+                      entry: e,
+                      onTap: () => _editEntry(e),
+                      onLongPress: () => _deleteEntry(e),
+                      onDelete: () => _deleteEntry(e),
+                    ),
+                  ),
                   const SizedBox(height: 96),
                 ],
               ),
@@ -208,7 +241,12 @@ class _EntryCard extends StatelessWidget {
   final VoidCallback onLongPress;
   final VoidCallback onDelete;
 
-  const _EntryCard({required this.entry, required this.onTap, required this.onLongPress, required this.onDelete});
+  const _EntryCard({
+    required this.entry,
+    required this.onTap,
+    required this.onLongPress,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -221,33 +259,18 @@ class _EntryCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (e.drawingBase64 != null || e.imagePath != null)
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
-                ),
-                child: kIsWeb
-                    ? Image.memory(
-                        base64Decode(e.drawingBase64!),
-                        width: 120,
-                        height: 120,
-                        fit: BoxFit.cover,
-                      )
-                    : Image.file(
-                        File(e.imagePath!),
-                        width: 120,
-                        height: 120,
-                        fit: BoxFit.cover,
-                      ),
-              ),
+            if (e.drawingJson != null && e.drawingJson!.trim().isNotEmpty)
+              DrawingThumbnail(drawingJson: e.drawingJson!),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(DateFormat('yyyy/MM/dd').format(e.date), style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      DateFormat('yyyy/MM/dd').format(e.date),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 8),
                     Text(
                       e.content,
