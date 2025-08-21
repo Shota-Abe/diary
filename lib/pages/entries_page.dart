@@ -6,14 +6,14 @@ import '../models/diary_entry.dart';
 import '../services/storage_service.dart';
 import 'edit_entry_page.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class EntriesPage extends StatefulWidget {
+  const EntriesPage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<EntriesPage> createState() => _EntriesPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _EntriesPageState extends State<EntriesPage> {
   final _storage = StorageService();
   late Future<List<DiaryEntry>> _future;
 
