@@ -1,8 +1,19 @@
 
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'dart:typed_data';
+
+import 'package:painter/painter.dart';
+
 import '../models/diary_entry.dart';
+import './drawing_page.dart';
+import '../services/storage_service.dart';
+import '../services/mobile_storage_service.dart';
 
 class EditEntryPage extends StatefulWidget {
   final DiaryEntry? entry;
@@ -16,25 +27,61 @@ class _EditEntryPageState extends State<EditEntryPage> {
   final _formKey = GlobalKey<FormState>();
   final _contentCtrl = TextEditingController();
   DateTime _date = DateTime.now();
-  // Image selection and drawing features removed
+  Uint8List? _drawingBytes;
+  late PainterController _painterCtrl;
+  final _storage = StorageService();
+  final _mobileStorage = MobileStorageService();
 
   @override
   void initState() {
     super.initState();
+    _painterCtrl = PainterController();
+    _painterCtrl.backgroundColor = Colors.grey.shade200;
+    _painterCtrl.thickness = 5.0;
+
     final e = widget.entry;
     if (e != null) {
       _contentCtrl.text = e.content;
       _date = e.date;
+      if (kIsWeb) {
+        if (e.drawingBase64 != null) {
+          _drawingBytes = base64Decode(e.drawingBase64!);
+        }
+      } else {
+        if (e.imagePath != null) {
+          // Load image data from file path
+          File(e.imagePath!).readAsBytes().then((bytes) {
+            if (mounted) setState(() => _drawingBytes = bytes);
+          });
+        }
+      }
     }
   }
 
   @override
+  @override
   void dispose() {
     _contentCtrl.dispose();
+    _painterCtrl.dispose();
     super.dispose();
   }
 
-  // Photo picking and drawing handlers removed
+  Future<void> _openDrawingPage() async {
+    final result = await Navigator.push<Uint8List>(
+      context,
+      MaterialPageRoute(builder: (context) => DrawingPage(controller: _painterCtrl)),
+    );
+
+    if (result != null) {
+      setState(() {
+        _drawingBytes = result;
+        _painterCtrl = PainterController(); // Reset controller for next time
+        _painterCtrl.backgroundColor = Colors.grey.shade200;
+        _painterCtrl.thickness = 5.0;
+      });
+    }
+  }
+
 
   Future<void> _pickDate() async {
     final d = await showDatePicker(
@@ -49,24 +96,62 @@ class _EditEntryPageState extends State<EditEntryPage> {
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    // Preserve existing imagePath if editing, but do not allow new image selection/drawing
-    final String? imagePath = widget.entry?.imagePath;
+    String? imagePath = widget.entry?.imagePath;
+    String? drawingBase64 = widget.entry?.drawingBase64;
+
+    if (_drawingBytes != null) {
+      if (kIsWeb) {
+        drawingBase64 = base64Encode(_drawingBytes!);
+        imagePath = null; // Do not use file path for web
+      } else {
+        imagePath = await _mobileStorage.saveImageBytes(_drawingBytes!);
+        drawingBase64 = null; // Do not use base64 for mobile
+      }
+    }
 
     final entry = (widget.entry ??
-        DiaryEntry(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          date: _date,
-          content: _contentCtrl.text.trim(),
-          imagePath: imagePath,
-        ))
-      .copyWith(
-        date: _date,
-        content: _contentCtrl.text.trim(),
-        imagePath: imagePath,
-      );
+            DiaryEntry(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              date: _date,
+              content: _contentCtrl.text.trim(),
+            ))
+        .copyWith(
+      date: _date,
+      content: _contentCtrl.text.trim(),
+      imagePath: imagePath,
+      drawingBase64: drawingBase64,
+    );
 
     if (!mounted) return;
     Navigator.pop(context, entry);
+  }
+
+  Widget _buildDrawingCanvas() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('今日の絵', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Container(
+          height: 200,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child: _drawingBytes != null
+                ? Image.memory(_drawingBytes!)
+                : const Text('絵がありません'),
+          ),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: _openDrawingPage,
+          icon: const Icon(Icons.edit),
+          label: const Text('絵を描く・編集する'),
+        ),
+      ],
+    );
   }
 
   @override
@@ -91,7 +176,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
               ],
             ),
             const SizedBox(height: 12),
-            // Image selection and drawing UI removed
+            _buildDrawingCanvas(),
             const SizedBox(height: 16),
             TextFormField(
               controller: _contentCtrl,

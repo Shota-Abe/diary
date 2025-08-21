@@ -5,12 +5,14 @@ class DiaryEntry {
   final DateTime date;
   final String content;
   final String? imagePath;
+  final String? drawingBase64;
 
-  DiaryEntry({
+  const DiaryEntry({
     required this.id,
     required this.date,
     required this.content,
     this.imagePath,
+    this.drawingBase64,
   });
 
   DiaryEntry copyWith({
@@ -18,12 +20,14 @@ class DiaryEntry {
     DateTime? date,
     String? content,
     String? imagePath,
+    String? drawingBase64,
   }) {
     return DiaryEntry(
       id: id ?? this.id,
       date: date ?? this.date,
       content: content ?? this.content,
       imagePath: imagePath ?? this.imagePath,
+      drawingBase64: drawingBase64 ?? this.drawingBase64,
     );
   }
 
@@ -33,6 +37,7 @@ class DiaryEntry {
       'date': date.toIso8601String(),
       'content': content,
       'imagePath': imagePath,
+      'drawingBase64': drawingBase64,
     };
   }
 
@@ -42,10 +47,14 @@ class DiaryEntry {
       date: DateTime.parse(map['date'] as String),
       content: map['content'] as String,
       imagePath: map['imagePath'] as String?,
+      drawingBase64: map['drawingBase64'] as String?,
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory DiaryEntry.fromJson(String source) => DiaryEntry.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory DiaryEntry.fromJson(String json) {
+    final map = jsonDecode(json) as Map<String, dynamic>;
+    return DiaryEntry.fromMap(map);
+  }
 }

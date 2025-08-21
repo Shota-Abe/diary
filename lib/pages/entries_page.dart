@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
@@ -107,18 +110,25 @@ class _EntriesPageState extends State<EntriesPage> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (e.imagePath != null)
+                        if (e.drawingBase64 != null || e.imagePath != null)
                           ClipRRect(
                             borderRadius: const BorderRadius.only(
                               topLeft: Radius.circular(12),
                               bottomLeft: Radius.circular(12),
                             ),
-                            child: Image.file(
-                              File(e.imagePath!),
-                              width: 120,
-                              height: 120,
-                              fit: BoxFit.cover,
-                            ),
+                            child: kIsWeb
+                                ? Image.memory(
+                                    base64Decode(e.drawingBase64!),
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.file(
+                                    File(e.imagePath!),
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                  ),
                           ),
                         Expanded(
                           child: Padding(
