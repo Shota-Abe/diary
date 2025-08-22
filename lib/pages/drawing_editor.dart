@@ -57,6 +57,15 @@ class DrawingEditorState extends State<DrawingEditor> {
       children: [
         Row(
           children: [
+            const Text('太さ'),
+            Expanded(
+              child: Slider(
+                value: _ctrl.thickness,
+                min: 1,
+                max: 20,
+                onChanged: (v) => setState(() => _ctrl.thickness = v),
+              ),
+            ),
             IconButton(
               tooltip: '色',
               icon: const Icon(Icons.palette),
@@ -115,15 +124,6 @@ class DrawingEditorState extends State<DrawingEditor> {
               onPressed: () => setState(_ctrl.redo),
             ),
             const SizedBox(width: 12),
-            const Text('太さ'),
-            Expanded(
-              child: Slider(
-                value: _ctrl.thickness,
-                min: 1,
-                max: 20,
-                onChanged: (v) => setState(() => _ctrl.thickness = v),
-              ),
-            ),
             TextButton(onPressed: clear, child: Text('クリア')),
           ],
         ),
