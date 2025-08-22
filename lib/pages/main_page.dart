@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:diary/l10n/app_localizations.dart';
 
 import 'activities_page.dart';
 import 'entries_page.dart';
@@ -25,13 +26,19 @@ class _MainPageState extends State<MainPage> {
           : NavigationBar(
               selectedIndex: _currentIndex,
               onDestinationSelected: (i) => setState(() => _currentIndex = i),
-              destinations: const [
-                NavigationDestination(icon: Icon(Icons.book), label: '日記'),
+              destinations: [
                 NavigationDestination(
-                  icon: Icon(Icons.directions_run),
-                  label: 'アクティビティ',
+                  icon: const Icon(Icons.book),
+                  label: AppLocalizations.of(context)!.navDiary,
                 ),
-                NavigationDestination(icon: Icon(Icons.history), label: '振り返り'),
+                NavigationDestination(
+                  icon: const Icon(Icons.directions_run),
+                  label: AppLocalizations.of(context)!.navActivities,
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.history),
+                  label: AppLocalizations.of(context)!.navReflection,
+                ),
               ],
             ),
     );

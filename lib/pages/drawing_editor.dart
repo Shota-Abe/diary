@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:diary/l10n/app_localizations.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class DrawingResult {
@@ -57,7 +58,7 @@ class DrawingEditorState extends State<DrawingEditor> {
       children: [
         Row(
           children: [
-            const Text('太さ'),
+            Text(AppLocalizations.of(context)!.thickness),
             Expanded(
               child: Slider(
                 value: _ctrl.thickness,
@@ -67,7 +68,7 @@ class DrawingEditorState extends State<DrawingEditor> {
               ),
             ),
             IconButton(
-              tooltip: '色',
+              tooltip: AppLocalizations.of(context)!.color,
               icon: const Icon(Icons.palette),
               onPressed: () async {
                 final selected = await showDialog<Color>(
@@ -75,7 +76,7 @@ class DrawingEditorState extends State<DrawingEditor> {
                   builder: (ctx) {
                     Color temp = _ctrl.color;
                     return AlertDialog(
-                      title: const Text('色を選択'),
+                      title: Text(AppLocalizations.of(context)!.pickColorTitle),
                       content: StatefulBuilder(
                         builder: (context, setStateDialog) {
                           return Column(
@@ -100,11 +101,11 @@ class DrawingEditorState extends State<DrawingEditor> {
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(ctx).pop(null),
-                          child: const Text('キャンセル'),
+                          child: Text(AppLocalizations.of(context)!.cancel),
                         ),
                         TextButton(
                           onPressed: () => Navigator.of(ctx).pop(temp),
-                          child: const Text('OK'),
+                          child: Text(AppLocalizations.of(context)!.ok),
                         ),
                       ],
                     );
@@ -114,17 +115,20 @@ class DrawingEditorState extends State<DrawingEditor> {
               },
             ),
             IconButton(
-              tooltip: '元に戻す',
+              tooltip: AppLocalizations.of(context)!.undo,
               icon: const Icon(Icons.undo),
               onPressed: () => setState(_ctrl.undo),
             ),
             IconButton(
-              tooltip: 'やり直し',
+              tooltip: AppLocalizations.of(context)!.redo,
               icon: const Icon(Icons.redo),
               onPressed: () => setState(_ctrl.redo),
             ),
             const SizedBox(width: 12),
-            TextButton(onPressed: clear, child: Text('クリア')),
+            TextButton(
+              onPressed: clear,
+              child: Text(AppLocalizations.of(context)!.clear),
+            ),
           ],
         ),
         AspectRatio(
@@ -258,7 +262,7 @@ class _Stroke {
   final double thickness;
 
   Map<String, dynamic> toMap() => {
-    'color': color.value,
+    'color': color.toARGB32(),
     'thickness': thickness,
     'points': points.map((p) => {'x': p.dx, 'y': p.dy}).toList(),
   };

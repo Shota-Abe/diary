@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:diary/l10n/app_localizations.dart';
 
 // Removed painter package; now using custom DrawingPage with JSON strokes
 
@@ -101,6 +102,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -109,46 +111,48 @@ class _EditEntryPageState extends State<EditEntryPage> {
 
           TextButton(
             onPressed: () => Navigator.pop(context, null),
-            child: const Text('キャンセル'),
+            child: Text(t.cancel),
           ),
 
           const Spacer(),
 
           if (widget.entry != null)
             TextButton(
-              child: Text('削除'),
+              child: Text(t.delete),
               onPressed: () async {
+                final currentContext = context;
                 final ok = await showDialog<bool>(
-                  context: context,
+                  context: currentContext,
                   builder: (_) => AlertDialog(
-                    title: const Text('削除しますか？'),
-                    content: const Text('この操作は元に戻せません'),
+                    title: Text(t.confirmDeleteTitle),
+                    content: Text(t.confirmDeleteContent),
                     actions: [
                       TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('キャンセル'),
+                        onPressed: () => Navigator.pop(currentContext, false),
+                        child: Text(t.cancel),
                       ),
                       FilledButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text('削除'),
+                        onPressed: () => Navigator.pop(currentContext, true),
+                        child: Text(t.delete),
                       ),
                     ],
                   ),
                 );
-                if (ok == true && mounted) {
+                if (ok == true) {
+                  if (!currentContext.mounted) return;
                   // 実データを削除
                   final storage = StorageService();
                   final list = await storage.loadEntries();
                   list.removeWhere((e) => e.id == widget.entry!.id);
                   await storage.saveEntries(list);
                   // 画像ファイル等の後片付けは不要になった
-                  if (!mounted) return;
-                  Navigator.pop(context, null);
+                  if (!currentContext.mounted) return;
+                  Navigator.pop(currentContext, null);
                 }
               },
             ),
 
-          TextButton(onPressed: _save, child: const Text('保存')),
+          TextButton(onPressed: _save, child: Text(t.save)),
 
           const SizedBox(width: 8),
         ],
@@ -173,13 +177,13 @@ class _EditEntryPageState extends State<EditEntryPage> {
               controller: _contentCtrl,
               maxLines: 10,
               minLines: 5,
-              decoration: const InputDecoration(
-                labelText: '日記',
-                border: OutlineInputBorder(),
-                hintText: '今日の出来事や感想を書きましょう',
+              decoration: InputDecoration(
+                labelText: t.diaryLabel,
+                border: const OutlineInputBorder(),
+                hintText: t.diaryHint,
               ),
               validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? '内容を入力してください' : null,
+                  (v == null || v.trim().isEmpty) ? t.diaryValidator : null,
             ),
           ],
         ),

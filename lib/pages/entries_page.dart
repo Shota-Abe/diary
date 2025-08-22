@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:diary/l10n/app_localizations.dart';
 
 import '../models/diary_entry.dart';
 import '../services/storage_service.dart';
@@ -99,13 +100,14 @@ class _EntriesPageState extends State<EntriesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('日記'),
+        title: Text(t.navDiary),
         centerTitle: true,
         actions: [
           IconButton(
-            tooltip: _calendarMode ? 'リスト表示に切替' : 'カレンダー表示に切替',
+            tooltip: _calendarMode ? t.listViewTooltip : t.calendarViewTooltip,
             onPressed: () => setState(() => _calendarMode = !_calendarMode),
             icon: Icon(_calendarMode ? Icons.list_alt : Icons.calendar_month),
           ),
@@ -120,7 +122,7 @@ class _EntriesPageState extends State<EntriesPage> {
           }
           final entries = snap.data!;
           if (entries.isEmpty) {
-            return const Center(child: Text('最初の日記を追加しましょう！'));
+            return Center(child: Text(t.emptyEntries));
           }
           // グルーピング: 日付ごとにエントリ
           Map<DateTime, List<DiaryEntry>> byDay = {};
@@ -148,7 +150,7 @@ class _EntriesPageState extends State<EntriesPage> {
                       selectedDayPredicate: (day) =>
                           isSameDay(day, _selectedDay),
                       calendarFormat: CalendarFormat.month,
-                      locale: 'ja_JP',
+                      locale: Localizations.localeOf(context).toLanguageTag(),
                       startingDayOfWeek: StartingDayOfWeek.monday,
                       eventLoader: (day) {
                         final key = DateTime(day.year, day.month, day.day);
@@ -224,7 +226,7 @@ class _EntriesPageState extends State<EntriesPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addEntry,
         icon: const Icon(Icons.add),
-        label: const Text('追加'),
+        label: Text(t.add),
       ),
     );
   }
@@ -245,6 +247,7 @@ class _EntryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final e = entry;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -272,7 +275,7 @@ class _EntryCard extends StatelessWidget {
               ),
             ),
             IconButton(
-              tooltip: '削除',
+              tooltip: t.deleteTooltip,
               icon: const Icon(Icons.delete_outline),
               onPressed: onDelete,
             ),
