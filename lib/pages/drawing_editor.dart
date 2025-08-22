@@ -39,11 +39,7 @@ class DrawingEditorState extends State<DrawingEditor> {
 
   bool get isEmpty => _ctrl.strokes.isEmpty && _ctrl.current == null;
 
-  void clear() => setState(
-    () => _ctrl
-      ..strokes.clear()
-      ..current = null,
-  );
+  void clear() => setState(() => _ctrl.clearAll());
 
   Future<DrawingResult> exportResult() async {
     final boundary =
@@ -113,6 +109,11 @@ class DrawingEditorState extends State<DrawingEditor> {
               tooltip: '元に戻す',
               icon: const Icon(Icons.undo),
               onPressed: () => setState(_ctrl.undo),
+            ),
+            IconButton(
+              tooltip: 'やり直し',
+              icon: const Icon(Icons.redo),
+              onPressed: () => setState(_ctrl.redo),
             ),
             const SizedBox(width: 12),
             const Text('太さ'),
@@ -314,6 +315,9 @@ class _DrawingController {
   _Stroke? current;
   Color color = Colors.black;
   double thickness = 5.0;
+  final List<_Stroke> _redoStack = [];
+  final List<List<_Stroke>> _clearHistory = [];
+  final List<List<_Stroke>> _redoClearHistory = [];
 
   String toJson() => jsonEncode(strokes.map((s) => s.toMap()).toList());
   void loadJson(String json) {
@@ -321,10 +325,17 @@ class _DrawingController {
     strokes
       ..clear()
       ..addAll(list.map((m) => _Stroke.fromMap(m as Map<String, dynamic>)));
+    _redoStack.clear();
+    _clearHistory.clear();
+    _redoClearHistory.clear();
+    current = null;
   }
 
   void start(Offset p) {
     current = _Stroke(points: [p], color: color, thickness: thickness);
+    // 新しい描画開始時はやり直し履歴を破棄
+    _redoStack.clear();
+    _redoClearHistory.clear();
   }
 
   void append(Offset p) {
@@ -340,8 +351,61 @@ class _DrawingController {
 
   void undo() {
     if (strokes.isNotEmpty) {
-      strokes.removeLast();
+      final removed = strokes.removeLast();
+      _redoStack.add(removed);
+      return;
     }
+    if (_clearHistory.isNotEmpty) {
+      final lastSnapshot = _clearHistory.removeLast();
+      strokes
+        ..clear()
+        ..addAll(_cloneStrokes(lastSnapshot));
+      _redoClearHistory.add(_cloneStrokes(lastSnapshot));
+    }
+  }
+
+  void redo() {
+    if (_redoStack.isNotEmpty) {
+      final s = _redoStack.removeLast();
+      strokes.add(s);
+      return;
+    }
+    if (_redoClearHistory.isNotEmpty) {
+      final snapshot = _redoClearHistory.removeLast();
+      _applyClearForRedo(snapshot);
+    }
+  }
+
+  void clearAll() {
+    if (strokes.isNotEmpty) {
+      _clearHistory.add(_cloneStrokes(strokes));
+    }
+    strokes.clear();
+    current = null;
+    _redoStack.clear();
+    _redoClearHistory.clear();
+  }
+
+  List<_Stroke> _cloneStrokes(List<_Stroke> src) {
+    return src
+        .map(
+          (s) => _Stroke(
+            points: s.points.map((p) => Offset(p.dx, p.dy)).toList(),
+            color: s.color,
+            thickness: s.thickness,
+          ),
+        )
+        .toList();
+  }
+
+  void _applyClearForRedo(List<_Stroke> snapshot) {
+    // Redo: 再度クリアを適用する（クリア履歴に積み直す）
+    if (strokes.isNotEmpty) {
+      _clearHistory.add(_cloneStrokes(strokes));
+    }
+    strokes.clear();
+    current = null;
+    _redoStack.clear();
   }
 }
 
