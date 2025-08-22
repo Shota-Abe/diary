@@ -25,7 +25,6 @@ class DrawingEditor extends StatefulWidget {
 class DrawingEditorState extends State<DrawingEditor> {
   final _ctrl = _DrawingController();
   final _repaintKey = GlobalKey();
-  Color _bg = Colors.white;
 
   @override
   void initState() {
@@ -133,7 +132,7 @@ class DrawingEditorState extends State<DrawingEditor> {
           child: Container(
             margin: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(
-              color: _bg,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.grey),
             ),
