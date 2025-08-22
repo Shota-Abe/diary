@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class DrawingResult {
   final Uint8List pngBytes;
@@ -65,43 +66,47 @@ class DrawingEditorState extends State<DrawingEditor> {
               tooltip: '色',
               icon: const Icon(Icons.palette),
               onPressed: () async {
-                final color = await showDialog<Color>(
+                final selected = await showDialog<Color>(
                   context: context,
-                  builder: (ctx) => SimpleDialog(
-                    title: const Text('色を選択'),
-                    children: [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children:
-                            [
-                                  Colors.black,
-                                  Colors.red,
-                                  Colors.green,
-                                  Colors.blue,
-                                  Colors.orange,
-                                  Colors.purple,
-                                  Colors.brown,
-                                ]
-                                .map(
-                                  (c) => GestureDetector(
-                                    onTap: () => Navigator.pop(ctx, c),
-                                    child: Container(
-                                      width: 28,
-                                      height: 28,
-                                      decoration: BoxDecoration(
-                                        color: c,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
+                  builder: (ctx) {
+                    Color temp = _ctrl.color;
+                    return AlertDialog(
+                      title: const Text('色を選択'),
+                      content: StatefulBuilder(
+                        builder: (context, setStateDialog) {
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ColorPicker(
+                                pickerColor: temp,
+                                onColorChanged: (c) =>
+                                    setStateDialog(() => temp = c),
+                                enableAlpha: false,
+                                labelTypes: const [
+                                  ColorLabelType.hsl,
+                                  ColorLabelType.hex,
+                                ],
+                                paletteType: PaletteType.hslWithHue,
+                                portraitOnly: true,
+                              ),
+                            ],
+                          );
+                        },
                       ),
-                    ],
-                  ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(null),
+                          child: const Text('キャンセル'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(temp),
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    );
+                  },
                 );
-                if (color != null) setState(() => _ctrl.color = color);
+                if (selected != null) setState(() => _ctrl.color = selected);
               },
             ),
             IconButton(
