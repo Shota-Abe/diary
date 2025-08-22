@@ -27,6 +27,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get add => '追加';
 
   @override
+  String get feedbackButtonTooltip => 'フィードバックを送信';
+
+  @override
   String get delete => '削除';
 
   @override

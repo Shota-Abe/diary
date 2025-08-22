@@ -27,6 +27,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get add => 'Add';
 
   @override
+  String get feedbackButtonTooltip => 'Send Feedback';
+
+  @override
   String get delete => 'Delete';
 
   @override

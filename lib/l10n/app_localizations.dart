@@ -134,6 +134,12 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get add;
 
+  /// No description provided for @feedbackButtonTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Feedback'**
+  String get feedbackButtonTooltip;
+
   /// No description provided for @delete.
   ///
   /// In en, this message translates to:

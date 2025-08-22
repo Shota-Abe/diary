@@ -5,6 +5,7 @@
   "navReflection": "振り返り",
   "comingSoon": "準備中…",
   "add": "追加",
+  "feedbackButtonTooltip": "フィードバックを送信",
   "delete": "削除",
   "save": "保存",
   "cancel": "キャンセル",

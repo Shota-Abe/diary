@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:diary/l10n/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/diary_entry.dart';
 import '../services/storage_service.dart';
@@ -105,6 +106,20 @@ class _EntriesPageState extends State<EntriesPage> {
       appBar: AppBar(
         title: Text(t.navDiary),
         centerTitle: true,
+        leading: IconButton(
+          tooltip: t.feedbackButtonTooltip,
+          onPressed: () async {
+            final url = Uri.parse('https://forms.gle/L52ASxuy3TEc9Sqw9');
+            if (await canLaunchUrl(url)) {
+              await launchUrl(url);
+            } else {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('Could not launch $url')));
+            }
+          },
+          icon: const Icon(Icons.feedback_outlined),
+        ),
         actions: [
           IconButton(
             tooltip: _calendarMode ? t.listViewTooltip : t.calendarViewTooltip,
