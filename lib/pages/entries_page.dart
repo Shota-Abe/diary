@@ -262,11 +262,6 @@ class _EntryCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      DateFormat('yyyy/MM/dd').format(e.date),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
                       e.content,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
