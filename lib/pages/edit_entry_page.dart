@@ -1,19 +1,12 @@
-
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'dart:typed_data';
-
-import 'package:painter/painter.dart';
+// Removed painter package; now using custom DrawingPage with JSON strokes
 
 import '../models/diary_entry.dart';
-import './drawing_page.dart';
+import 'drawing_editor.dart';
 import '../services/storage_service.dart';
-import '../services/mobile_storage_service.dart';
 
 class EditEntryPage extends StatefulWidget {
   final DiaryEntry? entry;
@@ -28,33 +21,19 @@ class _EditEntryPageState extends State<EditEntryPage> {
   final _contentCtrl = TextEditingController();
   DateTime _date = DateTime.now();
   Uint8List? _drawingBytes;
-  late PainterController _painterCtrl;
-  final _storage = StorageService();
-  final _mobileStorage = MobileStorageService();
+  String? _drawingJson; // editable strokes data
+  final GlobalKey<DrawingEditorState> _drawingKey =
+      GlobalKey<DrawingEditorState>();
 
   @override
   void initState() {
     super.initState();
-    _painterCtrl = PainterController();
-    _painterCtrl.backgroundColor = Colors.grey.shade200;
-    _painterCtrl.thickness = 5.0;
 
     final e = widget.entry;
     if (e != null) {
       _contentCtrl.text = e.content;
       _date = e.date;
-      if (kIsWeb) {
-        if (e.drawingBase64 != null) {
-          _drawingBytes = base64Decode(e.drawingBase64!);
-        }
-      } else {
-        if (e.imagePath != null) {
-          // Load image data from file path
-          File(e.imagePath!).readAsBytes().then((bytes) {
-            if (mounted) setState(() => _drawingBytes = bytes);
-          });
-        }
-      }
+      _drawingJson = e.drawingJson;
     }
   }
 
@@ -62,26 +41,10 @@ class _EditEntryPageState extends State<EditEntryPage> {
   @override
   void dispose() {
     _contentCtrl.dispose();
-    _painterCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _openDrawingPage() async {
-    final result = await Navigator.push<Uint8List>(
-      context,
-      MaterialPageRoute(builder: (context) => DrawingPage(controller: _painterCtrl)),
-    );
-
-    if (result != null) {
-      setState(() {
-        _drawingBytes = result;
-        _painterCtrl = PainterController(); // Reset controller for next time
-        _painterCtrl.backgroundColor = Colors.grey.shade200;
-        _painterCtrl.thickness = 5.0;
-      });
-    }
-  }
-
+  // Inline drawing editor is used instead of navigating to another page.
 
   Future<void> _pickDate() async {
     final d = await showDatePicker(
@@ -96,31 +59,33 @@ class _EditEntryPageState extends State<EditEntryPage> {
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    String? imagePath = widget.entry?.imagePath;
-    String? drawingBase64 = widget.entry?.drawingBase64;
+    String? drawingJson = widget.entry?.drawingJson;
 
-    if (_drawingBytes != null) {
-      if (kIsWeb) {
-        drawingBase64 = base64Encode(_drawingBytes!);
-        imagePath = null; // Do not use file path for web
-      } else {
-        imagePath = await _mobileStorage.saveImageBytes(_drawingBytes!);
-        drawingBase64 = null; // Do not use base64 for mobile
-      }
+    // Export from inline editor if it has content
+    if (_drawingKey.currentState != null &&
+        !_drawingKey.currentState!.isEmpty) {
+      final result = await _drawingKey.currentState!.exportResult();
+      _drawingBytes = result.pngBytes;
+      _drawingJson = result.drawingJson;
     }
 
-    final entry = (widget.entry ??
-            DiaryEntry(
-              id: DateTime.now().millisecondsSinceEpoch.toString(),
+    if (_drawingBytes != null) {
+      // 現在はサムネイル生成を行わず、編集可能なJSONのみ保存
+      drawingJson = _drawingJson;
+    }
+
+    final entry =
+        (widget.entry ??
+                DiaryEntry(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  date: _date,
+                  content: _contentCtrl.text.trim(),
+                ))
+            .copyWith(
               date: _date,
               content: _contentCtrl.text.trim(),
-            ))
-        .copyWith(
-      date: _date,
-      content: _contentCtrl.text.trim(),
-      imagePath: imagePath,
-      drawingBase64: drawingBase64,
-    );
+              drawingJson: drawingJson,
+            );
 
     if (!mounted) return;
     Navigator.pop(context, entry);
@@ -132,24 +97,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
       children: [
         Text('今日の絵', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
-        Container(
-          height: 200,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: _drawingBytes != null
-                ? Image.memory(_drawingBytes!)
-                : const Text('絵がありません'),
-          ),
-        ),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(
-          onPressed: _openDrawingPage,
-          icon: const Icon(Icons.edit),
-          label: const Text('絵を描く・編集する'),
-        ),
+        DrawingEditor(key: _drawingKey, initialDrawingJson: _drawingJson),
       ],
     );
   }
@@ -159,8 +107,47 @@ class _EditEntryPageState extends State<EditEntryPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.entry == null ? '新規作成' : '編集'),
+        centerTitle: true,
+        leading: TextButton(
+          onPressed: () => Navigator.pop(context, null),
+          child: const Text('キャンセル'),
+        ),
+        leadingWidth: 96,
         actions: [
-          IconButton(onPressed: _save, icon: const Icon(Icons.check)),
+          if (widget.entry != null)
+            TextButton(
+              child: Text('削除'),
+              onPressed: () async {
+                final ok = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('削除しますか？'),
+                    content: const Text('この操作は元に戻せません'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('キャンセル'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('削除'),
+                      ),
+                    ],
+                  ),
+                );
+                if (ok == true && mounted) {
+                  // 実データを削除
+                  final storage = StorageService();
+                  final list = await storage.loadEntries();
+                  list.removeWhere((e) => e.id == widget.entry!.id);
+                  await storage.saveEntries(list);
+                  // 画像ファイル等の後片付けは不要になった
+                  if (!mounted) return;
+                  Navigator.pop(context, null);
+                }
+              },
+            ),
+          TextButton(onPressed: _save, child: const Text('保存')),
         ],
       ),
       body: Form(
@@ -170,9 +157,16 @@ class _EditEntryPageState extends State<EditEntryPage> {
           children: [
             Row(
               children: [
-                Text(DateFormat('yyyy/MM/dd').format(_date), style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  DateFormat('yyyy/MM/dd').format(_date),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(width: 12),
-                OutlinedButton.icon(onPressed: _pickDate, icon: const Icon(Icons.calendar_today), label: const Text('日付を変更')),
+                OutlinedButton.icon(
+                  onPressed: _pickDate,
+                  icon: const Icon(Icons.calendar_today),
+                  label: const Text('日付を変更'),
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -187,10 +181,9 @@ class _EditEntryPageState extends State<EditEntryPage> {
                 border: OutlineInputBorder(),
                 hintText: '今日の出来事や感想を書きましょう',
               ),
-              validator: (v) => (v == null || v.trim().isEmpty) ? '内容を入力してください' : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? '内容を入力してください' : null,
             ),
-            const SizedBox(height: 24),
-            FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: const Text('保存')),
           ],
         ),
       ),
