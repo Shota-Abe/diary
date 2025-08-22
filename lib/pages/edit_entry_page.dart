@@ -159,19 +159,13 @@ class _EditEntryPageState extends State<EditEntryPage> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Row(
-              children: [
-                Text(
-                  DateFormat('yyyy/MM/dd').format(_date),
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(width: 12),
-                OutlinedButton.icon(
-                  onPressed: _pickDate,
-                  icon: const Icon(Icons.calendar_today),
-                  label: const Text('日付を変更'),
-                ),
-              ],
+            OutlinedButton.icon(
+              onPressed: _pickDate,
+              icon: const Icon(Icons.calendar_today),
+              label: Text(
+                DateFormat('yyyy/MM/dd').format(_date),
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
             const SizedBox(height: 12),
             _buildDrawingCanvas(),
