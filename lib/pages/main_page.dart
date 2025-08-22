@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import 'activities_page.dart';
 import 'entries_page.dart';
@@ -19,18 +20,20 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _pages),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (i) => setState(() => _currentIndex = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.book), label: '日記'),
-          NavigationDestination(
-            icon: Icon(Icons.directions_run),
-            label: 'アクティビティ',
-          ),
-          NavigationDestination(icon: Icon(Icons.history), label: '振り返り'),
-        ],
-      ),
+      bottomNavigationBar: kReleaseMode
+          ? null
+          : NavigationBar(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: (i) => setState(() => _currentIndex = i),
+              destinations: const [
+                NavigationDestination(icon: Icon(Icons.book), label: '日記'),
+                NavigationDestination(
+                  icon: Icon(Icons.directions_run),
+                  label: 'アクティビティ',
+                ),
+                NavigationDestination(icon: Icon(Icons.history), label: '振り返り'),
+              ],
+            ),
     );
   }
 }
