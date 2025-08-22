@@ -1,3 +1,3 @@
-# diary
+# 絵日記
 
-A new Flutter project.
+日々を充実させるためのアプリです。
