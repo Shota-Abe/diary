@@ -38,7 +38,6 @@ class _EditEntryPageState extends State<EditEntryPage> {
   }
 
   @override
-  @override
   void dispose() {
     _contentCtrl.dispose();
     super.dispose();
