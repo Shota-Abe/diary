@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'activities_page.dart';
 import 'entries_page.dart';
+import 'reflection_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -12,7 +13,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
-  final _pages = const [EntriesPage(), ActivitiesPage()];
+  final _pages = const [EntriesPage(), ActivitiesPage(), ReflectionPage()];
 
   @override
   Widget build(BuildContext context) {
@@ -22,14 +23,12 @@ class _MainPageState extends State<MainPage> {
         selectedIndex: _currentIndex,
         onDestinationSelected: (i) => setState(() => _currentIndex = i),
         destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.book),
-            label: '日記',
-          ),
+          NavigationDestination(icon: Icon(Icons.book), label: '日記'),
           NavigationDestination(
             icon: Icon(Icons.directions_run),
             label: 'アクティビティ',
           ),
+          NavigationDestination(icon: Icon(Icons.history), label: '振り返り'),
         ],
       ),
     );
