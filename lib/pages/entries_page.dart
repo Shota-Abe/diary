@@ -102,12 +102,14 @@ class _EntriesPageState extends State<EntriesPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('日記'),
+        centerTitle: true,
         actions: [
           IconButton(
             tooltip: _calendarMode ? 'リスト表示に切替' : 'カレンダー表示に切替',
             onPressed: () => setState(() => _calendarMode = !_calendarMode),
             icon: Icon(_calendarMode ? Icons.list_alt : Icons.calendar_month),
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: FutureBuilder<List<DiaryEntry>>(
