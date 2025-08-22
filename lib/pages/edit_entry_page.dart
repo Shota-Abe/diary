@@ -95,8 +95,6 @@ class _EditEntryPageState extends State<EditEntryPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('今日の絵', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 8),
         DrawingEditor(key: _drawingKey, initialDrawingJson: _drawingJson),
       ],
     );
@@ -106,14 +104,17 @@ class _EditEntryPageState extends State<EditEntryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.entry == null ? '新規作成' : '編集'),
-        centerTitle: true,
-        leading: TextButton(
-          onPressed: () => Navigator.pop(context, null),
-          child: const Text('キャンセル'),
-        ),
-        leadingWidth: 96,
+        automaticallyImplyLeading: false,
         actions: [
+          const SizedBox(width: 8),
+
+          TextButton(
+            onPressed: () => Navigator.pop(context, null),
+            child: const Text('キャンセル'),
+          ),
+
+          const Spacer(),
+
           if (widget.entry != null)
             TextButton(
               child: Text('削除'),
@@ -147,7 +148,10 @@ class _EditEntryPageState extends State<EditEntryPage> {
                 }
               },
             ),
+
           TextButton(onPressed: _save, child: const Text('保存')),
+
+          const SizedBox(width: 8),
         ],
       ),
       body: Form(
