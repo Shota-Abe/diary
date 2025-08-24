@@ -28,5 +28,5 @@ flutter:
   uses-material-design: true
   generate: true
 
-assets:
+  assets:
     - assets/data/
