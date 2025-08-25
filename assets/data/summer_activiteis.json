@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "name": "花火",
+    "iconPath": "assets/icons/hanabi.png",
+    "description": "夏の夜空を彩る美しい光の華。線香花火の儚さもまた一興。",
+    "isCompleted": false
+  },
+  {
+    "id": 2,
+    "name": "スイカ割り",
+    "iconPath": "assets/icons/suikawari.png",
+    "description": "目隠しをして棒を振り回す、夏ならではのスリリングな遊び。命中させるのは至難の業。",
+    "isCompleted": false
+  },
+  {
+    "id": 3,
+    "name": "夏祭り",
+    "iconPath": "assets/icons/natsumatsuri.png",
+    "description": "浴衣、屋台、盆踊り。日本の夏の風情が凝縮された特別な一夜。",
+    "isCompleted": true
+  }
+]
