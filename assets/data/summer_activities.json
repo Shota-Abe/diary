@@ -58,7 +58,7 @@
   {
     "id": 9,
     "name": "BBQ",
-    "iconPath": "assets/image/natsumatsuri.png",
+    "iconPath": "assets/image/bbq.png",
     "description": "たくさん食べて暑い夏に負けないぞ",
     "isCompleted": true
   }
