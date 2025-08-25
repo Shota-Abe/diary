@@ -14,4 +14,13 @@ class SummerActivity {
     required this.isCompleted,
   });
   // JSONから変換するfactoryコンストラクタ...
+  factory SummerActivity.fromJson(Map<String, dynamic> json) {
+    return SummerActivity(
+      id: json['id'],
+      name: json['name'],
+      iconPath: json['iconPath'],
+      description: json['description'],
+      isCompleted: json['isCompleted'],
+    );
+  }
 }
