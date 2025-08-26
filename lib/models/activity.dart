@@ -23,4 +23,20 @@ class SummerActivity {
       isCompleted: json['isCompleted'],
     );
   }
+  //要素を動的にする
+  SummerActivity copyWith({
+    int? id,
+    String? name,
+    String? iconPath,
+    String? description,
+    bool? isCompleted,
+  }) {
+    return SummerActivity(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      iconPath: iconPath ?? this.iconPath,
+      description: description ?? this.description,
+      isCompleted: isCompleted ?? this.isCompleted,
+    );
+  }
 }
