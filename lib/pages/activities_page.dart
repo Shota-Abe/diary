@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import '../models/activity.dart'; // 作成したモデルをインポート
-import 'activity_detail_page.dart'; // 詳細ページ（後で作成）をインポート
+import '../models/activity.dart';
+import 'activity_detail_page.dart';
 
-// データを扱うためStatefulWidgetに変更
 class ActivitiesPage extends StatefulWidget {
   const ActivitiesPage({super.key});
 
@@ -13,60 +12,54 @@ class ActivitiesPage extends StatefulWidget {
 }
 
 class _ActivitiesPageState extends State<ActivitiesPage> {
-  // 非同期で取得するアクティビティのリストを保持する変数
-  late Future<List<SummerActivity>> _activitiesFuture;
+  // 変更可能なアクティビティのリストを保持する「状態」
+  List<SummerActivity> activities = [];
+  // 読み込み中かどうかを管理する「状態」
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    // 画面が作成された最初のタイミングでデータ読み込みを開始
-    _activitiesFuture = _loadActivities();
+    // 画面の初回読み込み時にデータを取得
+    _loadActivities();
   }
 
-  // assetsからJSONを読み込み、SummerActivityのリストに変換するメソッド
-  Future<List<SummerActivity>> _loadActivities() async {
-    // 1. JSONファイルを文字列として読み込む
+  // データを読み込み、状態を更新するメソッド
+  Future<void> _loadActivities() async {
     final jsonString = await rootBundle.loadString(
       'assets/data/summer_activities.json',
     );
-    // 2. 文字列をDartのList<Map>形式にデコード（解読）する
     final List<dynamic> jsonList = json.decode(jsonString);
-    // 3. List<Map>の各要素をSummerActivity.fromJsonを使ってオブジェクトに変換する
-    return jsonList.map((json) => SummerActivity.fromJson(json)).toList();
+    final loadedActivities = jsonList
+        .map((json) => SummerActivity.fromJson(json))
+        .toList();
+
+    // setStateを使って状態を更新し、画面の再描画をトリガーする
+    setState(() {
+      activities = loadedActivities;
+      isLoading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('夏休みアクティビティ図鑑'), centerTitle: true),
-      // FutureBuilderを使って、非同期処理（データ読み込み）の状態に応じて表示を切り替える
-      body: FutureBuilder<List<SummerActivity>>(
-        future: _activitiesFuture, // _loadActivitiesの完了を待つ
-        builder: (context, snapshot) {
-          // 状態1: 読み込み中の場合
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          // 状態2: エラーが発生した場合
-          if (snapshot.hasError) {
-            return Center(child: Text('エラーが発生しました: ${snapshot.error}'));
-          }
-          // 状態3: データの準備が完了した場合
-          if (snapshot.hasData) {
-            final activities = snapshot.data!;
-            // GridViewを使ってデータをタイル状に表示する
-            return GridView.builder(
+      // isLoadingの状態に応じて表示を切り替える
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator()) // 読み込み中はインジケーターを表示
+          : GridView.builder(
+              // 読み込み完了後はGridViewを表示
               padding: const EdgeInsets.all(10.0),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4, // 1行に表示するアイテム数
-                crossAxisSpacing: 10.0, // アイテム間の横スペース
-                mainAxisSpacing: 10.0, // アイテム間の縦スペース
+                crossAxisCount: 3, // 見やすさのために3列に変更
+                crossAxisSpacing: 10.0,
+                mainAxisSpacing: 10.0,
               ),
               itemCount: activities.length,
               itemBuilder: (context, index) {
                 final activity = activities[index];
 
-                // isCompletedがfalseの時はアイコンをグレーにする
                 final iconImage = ColorFiltered(
                   colorFilter: ColorFilter.mode(
                     activity.isCompleted ? Colors.transparent : Colors.grey,
@@ -76,8 +69,20 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                 );
 
                 return GestureDetector(
+                  // 🔽 ここがクリック処理の心臓部 🔽
                   onTap: () {
-                    // タップされたら詳細ページに遷移
+                    // setStateを呼び出すことで、Flutterに変更を通知し再描画を促す
+                    setState(() {
+                      // 1. タップされたアイテムのisCompletedを反転させた新しいオブジェクトを作成
+                      final updatedActivity = activity.copyWith(
+                        isCompleted: !activity.isCompleted,
+                      );
+                      // 2. リスト内の古いオブジェクトを新しいオブジェクトに置き換える
+                      activities[index] = updatedActivity;
+                    });
+                  },
+                  onLongPress: () {
+                    // 長押しで詳細ページに遷移するように変更
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -87,6 +92,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                     );
                   },
                   child: GridTile(
+                    // ... (GridTileの中身は変更なし) ...
                     footer: Container(
                       padding: const EdgeInsets.symmetric(vertical: 2),
                       color: Colors.black.withOpacity(0.6),
@@ -117,14 +123,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                   ),
                 );
               },
-            );
-          }
-          // 状態4: データが空っぽの場合
-          return const Center(child: Text('データがありません。'));
-        },
-      ),
+            ),
     );
   }
 }
-
-k
