@@ -44,7 +44,14 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('夏休みアクティビティ図鑑'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('夏休みアクティビティ図鑑'),
+        centerTitle: true,
+        actions: <Widget>[ElevatedButton(onPressed: () {
+          
+        }, child: Text('追加'))],
+      ),
+
       // isLoadingの状態に応じて表示を切り替える
       body: isLoading
           ? const Center(child: CircularProgressIndicator()) // 読み込み中はインジケーターを表示
