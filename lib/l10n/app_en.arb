@@ -25,4 +25,13 @@
   "redo": "Redo",
   "clear": "Clear",
   "pickColorTitle": "Pick a color"
+  ,
+  "reflectionTitle": "{year}/{month} Reflection",
+  "@reflectionTitle": {
+    "description": "Title for the reflection page. e.g., 2025/8 Reflection",
+    "placeholders": {
+      "year": { "type": "int" },
+      "month": { "type": "int" }
+    }
+  }
 }
