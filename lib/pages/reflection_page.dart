@@ -19,6 +19,7 @@ class _ReflectionPageState extends State<ReflectionPage> {
   late Future<List<DiaryEntry>> _future;
   final PageController _pageController = PageController();
   Timer? _timer;
+  StreamSubscription<void>? _sub;
 
   @override
   void initState() {
@@ -26,12 +27,29 @@ class _ReflectionPageState extends State<ReflectionPage> {
     _future = _storage.loadEntries();
     // 初期呼び出しは itemCount を知らないのでデフォルト動作（何もしない）
     _startAutoPlay();
+    // 追加/削除などの保存完了を購読して即時再読込
+    _sub = _storage.changes.listen((_) async {
+      if (!mounted) return;
+      setState(() {
+        _future = _storage.loadEntries();
+      });
+      // 読み直し後にページインジケータと自動再生を調整
+      final list = await _future;
+      final filtered = _filterThisMonth(list);
+      if (!mounted) return;
+      if (filtered.length <= 1) {
+        _timer?.cancel();
+      } else {
+        _startAutoPlay(filtered.length);
+      }
+    });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _pageController.dispose();
+    _sub?.cancel();
     super.dispose();
   }
 
