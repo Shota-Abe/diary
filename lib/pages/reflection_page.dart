@@ -24,6 +24,7 @@ class _ReflectionPageState extends State<ReflectionPage> {
   void initState() {
     super.initState();
     _future = _storage.loadEntries();
+    // 初期呼び出しは itemCount を知らないのでデフォルト動作（何もしない）
     _startAutoPlay();
   }
 
@@ -34,14 +35,20 @@ class _ReflectionPageState extends State<ReflectionPage> {
     super.dispose();
   }
 
-  void _startAutoPlay() {
+  // 変更: itemCount を受け取り、1 以下なら自動再生を行わない。末尾到達時は 0 に戻る。
+  void _startAutoPlay([int itemCount = 0]) {
     _timer?.cancel();
+    if (itemCount <= 1) return; // 0 または 1 のときは自動再生しない
+
     _timer = Timer.periodic(const Duration(seconds: 3), (_) async {
-      // advance to next page when available
       if (!mounted) return;
       final pc = _pageController;
       if (!pc.hasClients) return;
-      final next = pc.page == null ? 0 : (pc.page! + 1).toInt();
+
+      // 現在ページ（整数）を計算して次ページを itemCount で巡回
+      final currentPage = pc.page != null ? pc.page!.round() : pc.initialPage;
+      final next = (currentPage + 1) % itemCount;
+
       pc.animateToPage(
         next,
         duration: const Duration(milliseconds: 400),
@@ -78,6 +85,17 @@ class _ReflectionPageState extends State<ReflectionPage> {
           if (!snap.hasData)
             return const Center(child: CircularProgressIndicator());
           final entries = _filterThisMonth(snap.data!);
+
+          // エントリー取得後のフレームでタイマーを開始/停止（build 中の副作用を避ける）
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            if (entries.length <= 1) {
+              _timer?.cancel();
+            } else {
+              _startAutoPlay(entries.length);
+            }
+          });
+
           if (entries.isEmpty) {
             return RefreshIndicator(
               onRefresh: _refresh,
