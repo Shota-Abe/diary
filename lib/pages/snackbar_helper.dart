@@ -7,13 +7,6 @@ void showAppSnackBar(BuildContext context, int Achivegoals){
         TextSpan(
           children: <TextSpan>[
             TextSpan(
-              text: 'Your ',
-              style: TextStyle(
-                color: Colors.black87,
-                fontSize: 16,
-              )
-            ),
-            TextSpan(
               text: Achivegoals.toString(),
               style: TextStyle(
                 color: Colors.black,
@@ -21,17 +14,8 @@ void showAppSnackBar(BuildContext context, int Achivegoals){
                 fontWeight: FontWeight.bold,
                 )
             ),
-            if(Achivegoals!=1)
             TextSpan(
-              text: ' Goals Achived!!',
-              style: TextStyle(
-                color: Colors.black87,
-                fontSize: 16,
-              )
-            ),
-            if(Achivegoals==1)
-            TextSpan(
-              text: ' Goal Achived',
+              text: '個の目標を達成しました！',
               style: TextStyle(
                 color: Colors.black87,
                 fontSize: 16,
