@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:date_picker_plus/date_picker_plus.dart';
 import 'package:diary/l10n/app_localizations.dart';
 
 import '../models/diary_entry.dart';
@@ -20,6 +21,8 @@ class _ReflectionPageState extends State<ReflectionPage> {
   final PageController _pageController = PageController();
   Timer? _timer;
   StreamSubscription<void>? _sub;
+  // 選択中の振り返り対象の年月（1日固定）
+  DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
 
   @override
   void initState() {
@@ -35,7 +38,7 @@ class _ReflectionPageState extends State<ReflectionPage> {
       });
       // 読み直し後にページインジケータと自動再生を調整
       final list = await _future;
-      final filtered = _filterThisMonth(list);
+      final filtered = _filterByMonth(list, _selectedMonth);
       if (!mounted) return;
       if (filtered.length <= 1) {
         _timer?.cancel();
@@ -82,27 +85,77 @@ class _ReflectionPageState extends State<ReflectionPage> {
     await _future;
   }
 
-  List<DiaryEntry> _filterThisMonth(List<DiaryEntry> all) {
-    final now = DateTime.now();
+  List<DiaryEntry> _filterByMonth(List<DiaryEntry> all, DateTime ym) {
     return all.where((e) {
-      return e.date.year == now.year &&
-          e.date.month == now.month &&
+      return e.date.year == ym.year &&
+          e.date.month == ym.month &&
           e.drawingJson != null &&
           e.drawingJson!.trim().isNotEmpty;
     }).toList()..sort((a, b) => a.date.compareTo(b.date));
+  }
+
+  Future<void> _pickMonth() async {
+    final result = await showDialog<DateTime>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('月を選択'),
+          content: SizedBox(
+            width: 360,
+            height: 360,
+            child: MonthPicker(
+              initialDate: DateTime(
+                _selectedMonth.year,
+                _selectedMonth.month,
+                1,
+              ),
+              minDate: DateTime(2000, 1, 1),
+              maxDate: DateTime(DateTime.now().year, DateTime.now().month, 1),
+              onDateSelected: (d) => Navigator.of(context).pop(d),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('キャンセル'),
+            ),
+          ],
+        );
+      },
+    );
+    if (result != null && mounted) {
+      setState(() {
+        _selectedMonth = DateTime(result.year, result.month, 1);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(t.navReflection), centerTitle: true),
+      appBar: AppBar(
+        title: Text(
+          t.reflectionTitle(_selectedMonth.year, _selectedMonth.month),
+        ),
+        centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: IconButton(
+              onPressed: _pickMonth,
+              icon: const Icon(Icons.calendar_month),
+            ),
+          ),
+        ],
+      ),
       body: FutureBuilder<List<DiaryEntry>>(
         future: _future,
         builder: (context, snap) {
-          if (!snap.hasData)
-            return const Center(child: CircularProgressIndicator());
-          final entries = _filterThisMonth(snap.data!);
+          if (!snap.hasData) {
+            return Center(child: CircularProgressIndicator());
+          }
+          final entries = _filterByMonth(snap.data!, _selectedMonth);
 
           // エントリー取得後のフレームでタイマーを開始/停止（build 中の副作用を避ける）
           WidgetsBinding.instance.addPostFrameCallback((_) {

@@ -25,4 +25,13 @@
   "redo": "やり直し",
   "clear": "クリア",
   "pickColorTitle": "色を選択"
+  ,
+  "reflectionTitle": "{year}年{month}月の振り返り",
+  "@reflectionTitle": {
+    "description": "振り返りページのタイトル。例: 2025年8月の振り返り",
+    "placeholders": {
+      "year": { "type": "int" },
+      "month": { "type": "int" }
+    }
+  }
 }

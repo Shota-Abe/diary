@@ -85,4 +85,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get pickColorTitle => '色を選択';
+
+  @override
+  String reflectionTitle(int year, int month) {
+    return '$year年$month月の振り返り';
+  }
 }
