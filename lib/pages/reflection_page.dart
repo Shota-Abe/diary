@@ -97,15 +97,7 @@ class _ReflectionPageState extends State<ReflectionPage> {
           });
 
           if (entries.isEmpty) {
-            return RefreshIndicator(
-              onRefresh: _refresh,
-              child: ListView(
-                children: [
-                  const SizedBox(height: 120),
-                  Center(child: Text(t.emptyEntries)),
-                ],
-              ),
-            );
+            return Center(child: Text(t.emptyEntries));
           }
 
           return RefreshIndicator(
