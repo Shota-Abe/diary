@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:diary/pages/add_element_dictionary.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/activity.dart';
@@ -47,9 +48,17 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
       appBar: AppBar(
         title: const Text('夏休みアクティビティ図鑑'),
         centerTitle: true,
-        actions: <Widget>[ElevatedButton(onPressed: () {
-          
-        }, child: Text('追加'))],
+        actions: <Widget>[
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AddElementDictionary()),
+              );
+            },
+            child: Text('追加'),
+          ),
+        ],
       ),
 
       // isLoadingの状態に応じて表示を切り替える
