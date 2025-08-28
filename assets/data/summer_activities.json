@@ -1,0 +1,65 @@
+[
+  {
+    "id": 1,
+    "name": "花火",
+    "iconPath": "assets/image/hanabi.png",
+    "description": "夏の夜空を彩る美しい光の華。線香花火の儚さもまた一興。",
+    "isCompleted": false
+  },
+  {
+    "id": 2,
+    "name": "スイカ割り",
+    "iconPath": "assets/image/suikawari.png",
+    "description": "目隠しをして棒を振り回す、夏ならではのスリリングな遊び。命中させるのは至難の業。",
+    "isCompleted": false
+  },
+  {
+    "id": 3,
+    "name": "海",
+    "iconPath": "assets/image/vacation_beach.png",
+    "description": "海でリフレッシュ！",
+    "isCompleted": true
+  },
+  {
+    "id": 4,
+    "name": "夏祭り",
+    "iconPath": "assets/image/natsumatsuri.png",
+    "description": "浴衣、屋台、盆踊り。日本の夏の風情が凝縮された特別な一夜。",
+    "isCompleted": true
+  },
+  {
+    "id": 5,
+    "name": "そうめん",
+    "iconPath": "assets/image/soumen.png",
+    "description": "暑い日は冷たいそうめんに限る",
+    "isCompleted": true
+  },
+  {
+    "id": 6,
+    "name": "プール",
+    "iconPath": "assets/image/pool.png",
+    "description": "海が苦手ならプールへ！",
+    "isCompleted": true
+  },
+  {
+    "id": 7,
+    "name": "かき氷",
+    "iconPath": "assets/image/kakigoori.png",
+    "description": "頭キーン",
+    "isCompleted": true
+  },
+  {
+    "id": 8,
+    "name": "川遊び",
+    "iconPath": "assets/image/kawaasobi.png",
+    "description": "都会の喧騒から離れて遊ぼう",
+    "isCompleted": true
+  },
+  {
+    "id": 9,
+    "name": "BBQ",
+    "iconPath": "assets/image/bbq.png",
+    "description": "たくさん食べて暑い夏に負けないぞ",
+    "isCompleted": true
+  }
+]
