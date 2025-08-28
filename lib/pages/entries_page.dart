@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
 import 'package:diary/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -218,19 +219,34 @@ class _EntriesPageState extends State<EntriesPage> {
             );
           }
 
-          // リスト表示
+          // リスト表示（見出し: 日付）
+          // entries は日付降順にソート済み
+          final items = <_ListItem>[];
+          DateTime? lastDate;
+          for (final e in entries) {
+            final day = DateTime(e.date.year, e.date.month, e.date.day);
+            if (lastDate == null || !isSameDay(day, lastDate)) {
+              items.add(_ListItem.header(day));
+              lastDate = day;
+            }
+            items.add(_ListItem.entry(e));
+          }
+
           return RefreshIndicator(
             onRefresh: _refresh,
             child: ListView.builder(
               padding: const EdgeInsets.only(bottom: 96),
-              itemCount: entries.length,
+              itemCount: items.length,
               itemBuilder: (context, i) {
-                final e = entries[i];
-                return _EntryCard(
-                  entry: e,
-                  onTap: () => _editEntry(e),
-                  onDelete: () => _deleteEntry(e),
-                );
+                final item = items[i];
+                return switch (item.type) {
+                  _ListItemType.header => _DateHeader(date: item.date!),
+                  _ListItemType.entry => _EntryCard(
+                    entry: item.entry!,
+                    onTap: () => _editEntry(item.entry!),
+                    onDelete: () => _deleteEntry(item.entry!),
+                  ),
+                };
               },
             ),
           );
@@ -291,6 +307,46 @@ class _EntryCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+enum _ListItemType { header, entry }
+
+class _ListItem {
+  final _ListItemType type;
+  final DateTime? date;
+  final DiaryEntry? entry;
+
+  const _ListItem._(this.type, {this.date, this.entry});
+
+  factory _ListItem.header(DateTime date) =>
+      _ListItem._(_ListItemType.header, date: date);
+
+  factory _ListItem.entry(DiaryEntry entry) =>
+      _ListItem._(_ListItemType.entry, entry: entry);
+}
+
+class _DateHeader extends StatelessWidget {
+  final DateTime date;
+
+  const _DateHeader({required this.date});
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final text = DateFormat.yMMMMd(locale).format(date);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Row(
+        children: [
+          Text(
+            text,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            ),
+          ),
+        ],
       ),
     );
   }
