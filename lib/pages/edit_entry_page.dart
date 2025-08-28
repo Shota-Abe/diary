@@ -101,7 +101,11 @@ class _EditEntryPageState extends State<EditEntryPage> {
 
     if (!mounted) return;
     Navigator.pop(context, entry);
-    showAppSnackBar(context, 2);
+
+    assert(() {
+      showAppSnackBar(context, 2);
+      return true;
+    }());
   }
 
   Widget _buildDrawingCanvas() {
@@ -178,9 +182,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
             OutlinedButton.icon(
               onPressed: _pickDate,
               icon: const Icon(Icons.calendar_today),
-              label: Text(
-                DateFormat('yyyy/MM/dd').format(_date),
-              ),
+              label: Text(DateFormat('yyyy/MM/dd').format(_date)),
             ),
             const SizedBox(height: 12),
             _buildDrawingCanvas(),
