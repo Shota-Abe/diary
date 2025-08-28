@@ -168,11 +168,28 @@ class _EntriesPageState extends State<EntriesPage> {
                       calendarFormat: CalendarFormat.month,
                       locale: Localizations.localeOf(context).toLanguageTag(),
                       startingDayOfWeek: StartingDayOfWeek.monday,
+                      enabledDayPredicate: (day) {
+                        final today = DateTime(
+                          DateTime.now().year,
+                          DateTime.now().month,
+                          DateTime.now().day,
+                        );
+                        return isSameDay(day, today) || day.isBefore(today);
+                      },
                       eventLoader: (day) {
                         final key = DateTime(day.year, day.month, day.day);
                         return byDay[key] ?? [];
                       },
                       onDaySelected: (selectedDay, focusedDay) {
+                        final today = DateTime(
+                          DateTime.now().year,
+                          DateTime.now().month,
+                          DateTime.now().day,
+                        );
+                        if (!isSameDay(selectedDay, today) &&
+                            selectedDay.isAfter(today)) {
+                          return;
+                        }
                         setState(() {
                           _selectedDay = DateTime(
                             selectedDay.year,
@@ -183,7 +200,14 @@ class _EntriesPageState extends State<EntriesPage> {
                         });
                       },
                       onPageChanged: (focusedDay) {
-                        _focusedDay = focusedDay;
+                        final today = DateTime(
+                          DateTime.now().year,
+                          DateTime.now().month,
+                          DateTime.now().day,
+                        );
+                        _focusedDay = focusedDay.isAfter(today)
+                            ? today
+                            : focusedDay;
                       },
                       calendarBuilders: CalendarBuilders<DiaryEntry>(
                         markerBuilder: (context, date, events) {
