@@ -48,11 +48,22 @@ class _EditEntryPageState extends State<EditEntryPage> {
   // Inline drawing editor is used instead of navigating to another page.
 
   Future<void> _pickDate() async {
+    final today = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+    final initial = _date.isAfter(today) ? today : _date;
     final d = await showDatePicker(
       context: context,
-      initialDate: _date,
+      initialDate: initial,
       firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      lastDate: today,
+      selectableDayPredicate: (day) =>
+          day.isBefore(today) ||
+          day.year == today.year &&
+              day.month == today.month &&
+              day.day == today.day,
     );
     if (d != null) setState(() => _date = d);
   }
@@ -90,7 +101,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
 
     if (!mounted) return;
     Navigator.pop(context, entry);
-    showAppSnackBar(context,2);
+    showAppSnackBar(context, 2);
   }
 
   Widget _buildDrawingCanvas() {
@@ -169,7 +180,6 @@ class _EditEntryPageState extends State<EditEntryPage> {
               icon: const Icon(Icons.calendar_today),
               label: Text(
                 DateFormat('yyyy/MM/dd').format(_date),
-                style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
             const SizedBox(height: 12),
