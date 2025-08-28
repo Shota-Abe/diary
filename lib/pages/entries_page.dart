@@ -185,6 +185,23 @@ class _EntriesPageState extends State<EntriesPage> {
                       onPageChanged: (focusedDay) {
                         _focusedDay = focusedDay;
                       },
+                      calendarBuilders: CalendarBuilders<DiaryEntry>(
+                        markerBuilder: (context, date, events) {
+                          if (events.isEmpty) return const SizedBox.shrink();
+                          const double size = 4.0;
+                          return Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Container(
+                              width: size,
+                              height: size,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.secondary,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                       calendarStyle: CalendarStyle(
                         markerDecoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.secondary,
