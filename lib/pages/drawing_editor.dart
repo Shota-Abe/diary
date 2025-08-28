@@ -214,7 +214,9 @@ class _ThumbnailPainter extends CustomPainter {
       double minY = double.infinity;
       double maxX = -double.infinity;
       double maxY = -double.infinity;
+      double maxThickness = 0.0;
       for (final s in strokes) {
+        if (s.thickness > maxThickness) maxThickness = s.thickness;
         for (final p in s.points) {
           if (p.dx < minX) minX = p.dx;
           if (p.dy < minY) minY = p.dy;
@@ -230,19 +232,23 @@ class _ThumbnailPainter extends CustomPainter {
         return;
       }
 
-      final scale = (size.width / contentW)
-          .clamp(0.0, double.infinity)
-          .clamp(0.0, double.infinity);
-      final scaleY = (size.height / contentH).clamp(0.0, double.infinity);
-      final actualScale = scale < scaleY ? scale : scaleY;
+      // Add padding so thick strokes are not clipped at the edges
+      final padding = (maxThickness / 2.0) + 8.0; // extra safety margin
+      final paddedW = contentW + padding * 2.0;
+      final paddedH = contentH + padding * 2.0;
 
-      final dx = (size.width - contentW * actualScale) / 2.0;
-      final dy = (size.height - contentH * actualScale) / 2.0;
+      final scaleX = (size.width / paddedW).clamp(0.0, double.infinity);
+      final scaleY = (size.height / paddedH).clamp(0.0, double.infinity);
+      final actualScale = scaleX < scaleY ? scaleX : scaleY;
+
+      final dx = (size.width - paddedW * actualScale) / 2.0;
+      final dy = (size.height - paddedH * actualScale) / 2.0;
 
       canvas.save();
       canvas.translate(dx, dy);
       canvas.scale(actualScale, actualScale);
-      canvas.translate(-minX, -minY);
+      // Shift origin to include padding around content
+      canvas.translate(-(minX - padding), -(minY - padding));
       _DrawingPainter(strokes, null).paint(canvas, size);
       canvas.restore();
     } catch (_) {
