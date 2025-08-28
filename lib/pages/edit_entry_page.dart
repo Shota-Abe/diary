@@ -21,6 +21,7 @@ class EditEntryPage extends StatefulWidget {
 class _EditEntryPageState extends State<EditEntryPage> {
   final _formKey = GlobalKey<FormState>();
   final _contentCtrl = TextEditingController();
+  final ScrollController _scrollCtrl = ScrollController();
   DateTime _date = DateTime.now();
   Uint8List? _drawingBytes;
   String? _drawingJson; // editable strokes data
@@ -42,6 +43,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
   @override
   void dispose() {
     _contentCtrl.dispose();
+    _scrollCtrl.dispose();
     super.dispose();
   }
 
@@ -174,32 +176,47 @@ class _EditEntryPageState extends State<EditEntryPage> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            OutlinedButton.icon(
-              onPressed: _pickDate,
-              icon: const Icon(Icons.calendar_today),
-              label: Text(DateFormat('yyyy/MM/dd').format(_date)),
-            ),
-            const SizedBox(height: 12),
-            _buildDrawingCanvas(),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _contentCtrl,
-              maxLines: 10,
-              minLines: 5,
-              decoration: InputDecoration(
-                labelText: t.diaryLabel,
-                border: const OutlineInputBorder(),
-                hintText: t.diaryHint,
+      body: SafeArea(
+        left: true,
+        right: true,
+        top: false,
+        bottom: false,
+        child: Form(
+          key: _formKey,
+          child: Scrollbar(
+            thumbVisibility: true,
+            controller: _scrollCtrl,
+            child: SingleChildScrollView(
+              controller: _scrollCtrl,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _pickDate,
+                    icon: const Icon(Icons.calendar_today),
+                    label: Text(DateFormat('yyyy/MM/dd').format(_date)),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildDrawingCanvas(),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _contentCtrl,
+                    maxLines: 10,
+                    minLines: 5,
+                    decoration: InputDecoration(
+                      labelText: t.diaryLabel,
+                      border: const OutlineInputBorder(),
+                      hintText: t.diaryHint,
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? t.diaryValidator
+                        : null,
+                  ),
+                ],
               ),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? t.diaryValidator : null,
             ),
-          ],
+          ),
         ),
       ),
     );
