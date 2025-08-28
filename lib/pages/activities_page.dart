@@ -14,7 +14,7 @@ class ActivitiesPage extends StatefulWidget {
 
 class _ActivitiesPageState extends State<ActivitiesPage> {
   // 変更可能なアクティビティのリストを保持する「状態」
-  List<SummerActivity> activities = [];
+  List<Activity> activities = [];
   // 読み込み中かどうかを管理する「状態」
   bool isLoading = true;
 
@@ -32,7 +32,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
     );
     final List<dynamic> jsonList = json.decode(jsonString);
     final loadedActivities = jsonList
-        .map((json) => SummerActivity.fromJson(json))
+        .map((json) => Activity.fromJson(json))
         .toList();
 
     // setStateを使って状態を更新し、画面の再描画をトリガーする
