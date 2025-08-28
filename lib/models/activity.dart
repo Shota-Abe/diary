@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class SummerActivity {
   final int id;
   final String name;
@@ -22,6 +24,16 @@ class SummerActivity {
       description: json['description'],
       isCompleted: json['isCompleted'],
     );
+  }
+  //オブジェクトをJSONの文字列形式に変換する
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'iconPath': iconPath,
+      'description': description,
+      'isCompleted': isCompleted,
+    };
   }
   //要素を動的にする
   SummerActivity copyWith({
