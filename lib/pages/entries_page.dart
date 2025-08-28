@@ -209,7 +209,6 @@ class _EntriesPageState extends State<EntriesPage> {
                     (e) => _EntryCard(
                       entry: e,
                       onTap: () => _editEntry(e),
-                      onLongPress: () => _deleteEntry(e),
                       onDelete: () => _deleteEntry(e),
                     ),
                   ),
@@ -230,7 +229,6 @@ class _EntriesPageState extends State<EntriesPage> {
                 return _EntryCard(
                   entry: e,
                   onTap: () => _editEntry(e),
-                  onLongPress: () => _deleteEntry(e),
                   onDelete: () => _deleteEntry(e),
                 );
               },
@@ -250,13 +248,11 @@ class _EntriesPageState extends State<EntriesPage> {
 class _EntryCard extends StatelessWidget {
   final DiaryEntry entry;
   final VoidCallback onTap;
-  final VoidCallback onLongPress;
   final VoidCallback onDelete;
 
   const _EntryCard({
     required this.entry,
     required this.onTap,
-    required this.onLongPress,
     required this.onDelete,
   });
 
@@ -268,7 +264,6 @@ class _EntryCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: InkWell(
         onTap: onTap,
-        onLongPress: onLongPress,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
