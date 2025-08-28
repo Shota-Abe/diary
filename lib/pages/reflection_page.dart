@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:date_picker_plus/date_picker_plus.dart';
 import 'package:diary/l10n/app_localizations.dart';
+import 'package:intl/intl.dart' as intl;
 
 import '../models/diary_entry.dart';
 import '../services/storage_service.dart';
@@ -207,7 +208,9 @@ class _ReflectionPageState extends State<ReflectionPage> {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              '${e.date.year}/${e.date.month}/${e.date.day}',
+                              intl.DateFormat.yMMMMd(
+                                Localizations.localeOf(context).toString(),
+                              ).format(e.date),
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                             const SizedBox(height: 6),
