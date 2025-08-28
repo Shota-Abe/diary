@@ -186,45 +186,37 @@ class _ReflectionPageState extends State<ReflectionPage> {
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           children: [
-                            Expanded(
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final squareSize =
-                                      constraints.biggest.shortestSide;
-                                  return Center(
-                                    child: SizedBox(
-                                      width: squareSize,
-                                      height: squareSize,
-                                      child: DrawingThumbnail(
-                                        drawingJson: e.drawingJson!,
-                                        backgroundColor: Colors.white,
-                                        borderRadius: BorderRadius.circular(8),
-                                        size: squareSize,
-                                      ),
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final squareSize =
+                                    constraints.biggest.shortestSide;
+                                return Center(
+                                  child: SizedBox(
+                                    width: squareSize,
+                                    height: squareSize,
+                                    child: DrawingThumbnail(
+                                      drawingJson: e.drawingJson!,
+                                      backgroundColor: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                      size: squareSize,
                                     ),
-                                  );
-                                },
-                              ),
+                                  ),
+                                );
+                              },
                             ),
                             const SizedBox(height: 12),
                             Text(
                               intl.DateFormat.yMMMMd(
                                 Localizations.localeOf(context).toString(),
                               ).format(e.date),
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                             ),
                             const SizedBox(height: 6),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12.0,
-                              ),
+                            SingleChildScrollView(
                               child: Text(
                                 e.content,
-                                maxLines: 4,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const SizedBox(height: 12),
                           ],
                         ),
                       );
