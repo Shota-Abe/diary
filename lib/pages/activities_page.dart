@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'package:diary/pages/add_element_dictionary.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/activity.dart';
 import 'activity_detail_page.dart';
+import 'dart:io';
 
 class ActivitiesPage extends StatefulWidget {
   const ActivitiesPage({super.key});
@@ -14,7 +16,7 @@ class ActivitiesPage extends StatefulWidget {
 
 class _ActivitiesPageState extends State<ActivitiesPage> {
   // 変更可能なアクティビティのリストを保持する「状態」
-  List<SummerActivity> activities = [];
+  List<Activity> activities = [];
   // 読み込み中かどうかを管理する「状態」
   bool isLoading = true;
 
@@ -27,19 +29,51 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
 
   // データを読み込み、状態を更新するメソッド
   Future<void> _loadActivities() async {
-    final jsonString = await rootBundle.loadString(
-      'assets/data/summer_activities.json',
-    );
-    final List<dynamic> jsonList = json.decode(jsonString);
-    final loadedActivities = jsonList
-        .map((json) => SummerActivity.fromJson(json))
-        .toList();
+    // 1. SharedPreferencesのインスタンスを取得
+    final prefs = await SharedPreferences.getInstance();
 
-    // setStateを使って状態を更新し、画面の再描画をトリガーする
-    setState(() {
-      activities = loadedActivities;
-      isLoading = false;
-    });
+    // 2. 'activities_list'キーで保存されたデータを取得
+    final String? activitiesJson = prefs.getString('activities_list');
+
+    List<Activity> loadedActivities;
+
+    if (activitiesJson != null) {
+      // 3. データがあれば、それをデコードしてリストに変換
+      final List<dynamic> jsonList = json.decode(activitiesJson);
+      loadedActivities = jsonList
+          .map((json) => Activity.fromJson(json))
+          .toList();
+    } else {
+      // 4. データがなければ（初回起動時など）、初期データをassetsから読み込む
+      final initialJsonString = await rootBundle.loadString(
+        'assets/data/summer_activities.json',
+      );
+      final List<dynamic> jsonList = json.decode(initialJsonString);
+      loadedActivities = jsonList
+          .map((json) => Activity.fromJson(json))
+          .toList();
+
+      // 5. 読み込んだ初期データをSharedPreferencesに保存しておく
+      await prefs.setString('activities_list', initialJsonString);
+    }
+
+    // 取得したデータで状態を更新
+    if (mounted) {
+      setState(() {
+        activities = loadedActivities;
+        isLoading = false;
+      });
+    }
+  }
+
+  // ===== ▼ [新規追加] 完了状態をSharedPreferencesに保存するメソッド ▼ =====
+  Future<void> _saveActivities() async {
+    final prefs = await SharedPreferences.getInstance();
+    // 現在のリストをJSONに変換
+    final List<Map<String, dynamic>> activitiesToSave =
+        activities.map((activity) => activity.toJson()).toList();
+    // SharedPreferencesに保存
+    await prefs.setString('activities_list', jsonEncode(activitiesToSave));
   }
 
   @override
@@ -50,11 +84,12 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         centerTitle: true,
         actions: <Widget>[
           ElevatedButton(
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => AddElementDictionary()),
               );
+              _loadActivities();
             },
             child: Text('追加'),
           ),
@@ -76,12 +111,22 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
               itemBuilder: (context, index) {
                 final activity = activities[index];
 
+                Widget imageWidget;
+                if (activity.iconPath.startsWith('assets/')) {
+                  // パスが 'assets/' で始まっていれば Image.asset を使用
+                  imageWidget = Image.asset(activity.iconPath, fit: BoxFit.cover);
+                } else {
+                  // それ以外（ファイルパス）の場合は Image.file を使用
+                  imageWidget = Image.file(File(activity.iconPath), fit: BoxFit.cover);
+                }
+
+
                 final iconImage = ColorFiltered(
                   colorFilter: ColorFilter.mode(
                     activity.isCompleted ? Colors.transparent : Colors.grey,
                     BlendMode.saturation,
                   ),
-                  child: Image.asset(activity.iconPath, fit: BoxFit.cover),
+                  child: imageWidget,
                 );
 
                 return GestureDetector(
@@ -95,6 +140,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                       );
                       // 2. リスト内の古いオブジェクトを新しいオブジェクトに置き換える
                       activities[index] = updatedActivity;
+                       _saveActivities();
                     });
                   },
                   onLongPress: () {

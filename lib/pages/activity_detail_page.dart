@@ -3,7 +3,7 @@ import '../models/activity.dart';
 
 class ActivityDetailPage extends StatelessWidget {
   // 一覧画面から渡されるアクティビティのデータ
-  final SummerActivity activity;
+  final Activity activity;
 
   const ActivityDetailPage({super.key, required this.activity});
 

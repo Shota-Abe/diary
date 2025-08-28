@@ -1,4 +1,6 @@
-class SummerActivity {
+import 'dart:convert';
+
+class Activity {
   final int id;
   final String name;
   final String iconPath;
@@ -6,7 +8,7 @@ class SummerActivity {
   final bool isCompleted;
 
   // コンストラクタなど...
-  const SummerActivity({
+  const Activity({
     required this.id,
     required this.name,
     required this.iconPath,
@@ -14,8 +16,8 @@ class SummerActivity {
     required this.isCompleted,
   });
   // JSONから変換するfactoryコンストラクタ...
-  factory SummerActivity.fromJson(Map<String, dynamic> json) {
-    return SummerActivity(
+  factory Activity.fromJson(Map<String, dynamic> json) {
+    return Activity(
       id: json['id'],
       name: json['name'],
       iconPath: json['iconPath'],
@@ -23,15 +25,25 @@ class SummerActivity {
       isCompleted: json['isCompleted'],
     );
   }
+  //オブジェクトをJSONの文字列形式に変換する
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'iconPath': iconPath,
+      'description': description,
+      'isCompleted': isCompleted,
+    };
+  }
   //要素を動的にする
-  SummerActivity copyWith({
+  Activity copyWith({
     int? id,
     String? name,
     String? iconPath,
     String? description,
     bool? isCompleted,
   }) {
-    return SummerActivity(
+    return Activity(
       id: id ?? this.id,
       name: name ?? this.name,
       iconPath: iconPath ?? this.iconPath,
