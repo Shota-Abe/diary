@@ -186,11 +186,23 @@ class _ReflectionPageState extends State<ReflectionPage> {
                         child: Column(
                           children: [
                             Expanded(
-                              child: DrawingThumbnail(
-                                drawingJson: e.drawingJson!,
-                                backgroundColor: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                size: 600,
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final squareSize =
+                                      constraints.biggest.shortestSide;
+                                  return Center(
+                                    child: SizedBox(
+                                      width: squareSize,
+                                      height: squareSize,
+                                      child: DrawingThumbnail(
+                                        drawingJson: e.drawingJson!,
+                                        backgroundColor: Colors.white,
+                                        borderRadius: BorderRadius.circular(8),
+                                        size: squareSize,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                             const SizedBox(height: 12),
