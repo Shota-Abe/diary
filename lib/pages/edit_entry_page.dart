@@ -8,6 +8,7 @@ import 'package:diary/l10n/app_localizations.dart';
 import '../models/diary_entry.dart';
 import 'drawing_editor.dart';
 import '../services/storage_service.dart';
+import 'snackbar_helper.dart';
 
 class EditEntryPage extends StatefulWidget {
   final DiaryEntry? entry;
@@ -89,6 +90,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
 
     if (!mounted) return;
     Navigator.pop(context, entry);
+    showAppSnackBar(context,2);
   }
 
   Widget _buildDrawingCanvas() {
