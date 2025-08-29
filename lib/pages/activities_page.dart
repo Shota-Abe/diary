@@ -131,28 +131,19 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
 
                 return GestureDetector(
                   // 🔽 ここがクリック処理の心臓部 🔽
-                  onTap: () {
-                    // setStateを呼び出すことで、Flutterに変更を通知し再描画を促す
-                    setState(() {
-                      // 1. タップされたアイテムのisCompletedを反転させた新しいオブジェクトを作成
-                      final updatedActivity = activity.copyWith(
-                        isCompleted: !activity.isCompleted,
-                      );
-                      // 2. リスト内の古いオブジェクトを新しいオブジェクトに置き換える
-                      activities[index] = updatedActivity;
-                       _saveActivities();
-                    });
-                  },
-                  onLongPress: () {
-                    // 長押しで詳細ページに遷移するように変更
-                    Navigator.push(
+                  onTap: () async{
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            ActivityDetailPage(activity: activity),
-                      ),
+                        builder: (context) => ActivityDetailPage(activity: activity),
+                     ),
                     );
+
+                    if (result == true) {
+                      _loadActivities();
+                    }
                   },
+                
                   child: GridTile(
                     // ... (GridTileの中身は変更なし) ...
                     footer: Container(
@@ -180,8 +171,51 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                           fit: BoxFit.cover,
                         ),
                       ),
-                      child: iconImage,
+                      child: Stack(
+                        fit: StackFit.expand, // 子要素をStack全体に広げる
+                        children: [
+                          // 背景の画像
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6.0),
+                            child: iconImage,
+                          ),
+                          // [変更点4] 右上に配置する完了ボタン
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: IconButton(
+                              icon: Icon(
+                                // 完了状態に応じてアイコンと色を変更
+                                activity.isCompleted
+                                  ? Icons.check_circle
+                                  : Icons.check_circle_outline,
+                              color: activity.isCompleted
+                                  ? Colors.greenAccent
+                                  : Colors.white.withOpacity(0.8),
+                              ),
+                              // アイコンの影で見やすくする
+                              style: IconButton.styleFrom(
+                                iconSize: 28,
+                                padding: EdgeInsets.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                              onPressed: () {
+                                // ボタンが押されたら完了状態を反転させて保存
+                                setState(() {
+                                 final updatedActivity = activity.copyWith(
+                                    isCompleted: !activity.isCompleted,
+                                  );
+                                  activities[index] = updatedActivity;
+                                  _saveActivities();
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      )
                     ),
+
                   ),
                 );
               },
