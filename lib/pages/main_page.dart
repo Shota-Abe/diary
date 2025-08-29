@@ -15,32 +15,44 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
-  final _pages = const [EntriesPage(), ActivitiesPage(), ReflectionPage()];
+  // Pages are built dynamically depending on build mode
 
   @override
   Widget build(BuildContext context) {
+    final bool showActivities = !kReleaseMode;
+
+    final List<Widget> pages = [
+      const EntriesPage(),
+      if (showActivities) const ActivitiesPage(),
+      const ReflectionPage(),
+    ];
+
+    int currentIndex = _currentIndex;
+    if (currentIndex >= pages.length) {
+      currentIndex = 0;
+    }
+
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _pages),
-      bottomNavigationBar: kReleaseMode
-          ? null
-          : NavigationBar(
-              selectedIndex: _currentIndex,
-              onDestinationSelected: (i) => setState(() => _currentIndex = i),
-              destinations: [
-                NavigationDestination(
-                  icon: const Icon(Icons.book),
-                  label: AppLocalizations.of(context)!.navDiary,
-                ),
-                NavigationDestination(
-                  icon: const Icon(Icons.directions_run),
-                  label: AppLocalizations.of(context)!.navActivities,
-                ),
-                NavigationDestination(
-                  icon: const Icon(Icons.history),
-                  label: AppLocalizations.of(context)!.navReflection,
-                ),
-              ],
+      body: IndexedStack(index: currentIndex, children: pages),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: currentIndex,
+        onDestinationSelected: (i) => setState(() => _currentIndex = i),
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.book),
+            label: AppLocalizations.of(context)!.navDiary,
+          ),
+          if (showActivities)
+            NavigationDestination(
+              icon: const Icon(Icons.directions_run),
+              label: AppLocalizations.of(context)!.navActivities,
             ),
+          NavigationDestination(
+            icon: const Icon(Icons.history),
+            label: AppLocalizations.of(context)!.navReflection,
+          ),
+        ],
+      ),
     );
   }
 }

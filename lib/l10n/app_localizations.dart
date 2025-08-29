@@ -253,6 +253,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick a color'**
   String get pickColorTitle;
+
+  /// Title for the reflection page. e.g., 2025/8 Reflection
+  ///
+  /// In en, this message translates to:
+  /// **'{year}/{month} Reflection'**
+  String reflectionTitle(int year, int month);
 }
 
 class _AppLocalizationsDelegate
