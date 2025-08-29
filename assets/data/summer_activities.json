@@ -8,7 +8,7 @@
   },
   {
     "id": 2,
-    "name": "スイカ割り",
+    "name": "スイカ",
     "iconPath": "assets/image/suikawari.png",
     "description": "目隠しをして棒を振り回す、夏ならではのスリリングな遊び。命中させるのは至難の業。",
     "isCompleted": false

@@ -83,7 +83,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         title: const Text('夏休みアクティビティ図鑑'),
         centerTitle: true,
         actions: <Widget>[
-          ElevatedButton(
+          IconButton(
             onPressed: () async {
               await Navigator.push(
                 context,
@@ -91,7 +91,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
               );
               _loadActivities();
             },
-            child: Text('追加'),
+            icon: const Icon(Icons.add),
           ),
         ],
       ),
@@ -111,27 +111,17 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
               itemBuilder: (context, index) {
                 final activity = activities[index];
 
-                Widget imageWidget;
+                // アイコン画像用のImageProviderを準備 (変更なし)
+                ImageProvider imageProvider;
                 if (activity.iconPath.startsWith('assets/')) {
-                  // パスが 'assets/' で始まっていれば Image.asset を使用
-                  imageWidget = Image.asset(activity.iconPath, fit: BoxFit.cover);
+                  imageProvider = AssetImage(activity.iconPath);
                 } else {
-                  // それ以外（ファイルパス）の場合は Image.file を使用
-                  imageWidget = Image.file(File(activity.iconPath), fit: BoxFit.cover);
+                  imageProvider = FileImage(File(activity.iconPath));
                 }
 
-
-                final iconImage = ColorFiltered(
-                  colorFilter: ColorFilter.mode(
-                    activity.isCompleted ? Colors.transparent : Colors.grey,
-                    BlendMode.saturation,
-                  ),
-                  child: imageWidget,
-                );
-
                 return GestureDetector(
-                  // 🔽 ここがクリック処理の心臓部 🔽
-                  onTap: () async{
+                  onTap: () async {
+                    // ... (onTapの処理は変更なし)
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -143,82 +133,91 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                       _loadActivities();
                     }
                   },
-                
-                  child: GridTile(
-                    // ... (GridTileの中身は変更なし) ...
-                    footer: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      color: Colors.black.withOpacity(0.6),
-                      child: Text(
-                        activity.name,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                  // [変更点1] GridTileの代わりに、自前でレイアウトを構築
+                  child: Container(
+                    // これがタイル全体の「枠」となる
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.blueGrey.shade700,
+                        width: 2,
                       ),
                     ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Colors.blueGrey.shade700,
-                          width: 2,
-                        ),
-                        image: DecorationImage(
-                          image: AssetImage(activity.iconPath),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      child: Stack(
-                        fit: StackFit.expand, // 子要素をStack全体に広げる
+                    // [変更点2] ClipRRectで中身が角丸をはみ出さないようにする
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(6.0), // 枠線の内側に合わせる
+                      child: Column(
                         children: [
-                          // 背景の画像
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(6.0),
-                            child: iconImage,
+                          // [変更点3] 上下の要素を分けるためColumnを使用
+                          // 上の部分（アイコンとボタン）
+                          Expanded(
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                // アイコン本体
+                                ColorFiltered(
+                                  colorFilter: ColorFilter.mode(
+                                    activity.isCompleted ? Colors.transparent : Colors.grey,
+                                    BlendMode.saturation,
+                                  ),
+                                  child: Image(
+                                    image: imageProvider,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                // 右上のチェックボタン
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: IconButton(
+                                    icon: Icon(
+                                      activity.isCompleted
+                                          ? Icons.check_circle
+                                          : Icons.check_circle_outline,
+                                      color: activity.isCompleted
+                                          ? Colors.greenAccent
+                                          : Colors.white.withOpacity(0.8),
+                                    ),
+                                    style: IconButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        final updatedActivity = activity.copyWith(
+                                          isCompleted: !activity.isCompleted,
+                                        );
+                                        activities[index] = updatedActivity;
+                                        _saveActivities();
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          // [変更点4] 右上に配置する完了ボタン
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: IconButton(
-                              icon: Icon(
-                                // 完了状態に応じてアイコンと色を変更
-                                activity.isCompleted
-                                  ? Icons.check_circle
-                                  : Icons.check_circle_outline,
-                              color: activity.isCompleted
-                                  ? Colors.greenAccent
-                                  : Colors.white.withOpacity(0.8),
+                          // 下の部分（フッター）
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            color: Colors.black.withOpacity(0.6),
+                            width: double.infinity, // 横幅をいっぱいに広げる
+                            child: Text(
+                              activity.name,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
                               ),
-                              // アイコンの影で見やすくする
-                              style: IconButton.styleFrom(
-                                iconSize: 28,
-                                padding: EdgeInsets.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                visualDensity: VisualDensity.compact,
-                              ),
-                              onPressed: () {
-                                // ボタンが押されたら完了状態を反転させて保存
-                                setState(() {
-                                 final updatedActivity = activity.copyWith(
-                                    isCompleted: !activity.isCompleted,
-                                  );
-                                  activities[index] = updatedActivity;
-                                  _saveActivities();
-                                });
-                              },
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
-                      )
+                      ),
                     ),
-
                   ),
                 );
               },
+
             ),
     );
   }
