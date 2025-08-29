@@ -28,7 +28,7 @@ class ActivityDetailPage extends StatelessWidget {
     // 4. 削除が完了したことを伝えながら前の画面に戻る
     if (context.mounted) {
       // pop(true)で前の画面に「削除が行われた」ことを伝える
-      Navigator.of(context).pop(true); 
+      Navigator.of(context).pop(true);
     }
   }
 
@@ -67,9 +67,17 @@ class ActivityDetailPage extends StatelessWidget {
     // [修正] 画像表示ロジックをActivitiesPageと同様に修正
     Widget imageWidget;
     if (activity.iconPath.startsWith('assets/')) {
-      imageWidget = Image.asset(activity.iconPath, height: 250, fit: BoxFit.cover);
+      imageWidget = Image.asset(
+        activity.iconPath,
+        fit: BoxFit.contain,
+        width: double.infinity,
+      );
     } else {
-      imageWidget = Image.file(File(activity.iconPath), height: 250, fit: BoxFit.cover);
+      imageWidget = Image.file(
+        File(activity.iconPath),
+        fit: BoxFit.contain,
+        width: double.infinity,
+      );
     }
 
     return Scaffold(
@@ -93,6 +101,7 @@ class ActivityDetailPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
+              constraints: const BoxConstraints(minHeight: 200, maxHeight: 400),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.blueGrey, width: 3),
