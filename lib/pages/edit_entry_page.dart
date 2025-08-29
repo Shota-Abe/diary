@@ -35,12 +35,17 @@ class _EditEntryPageState extends State<EditEntryPage> {
       _contentCtrl.text = e.content;
       _date = e.date;
       _drawingJson = e.drawingJson;
+      if (e.tags != null) {
+        _selectedTags.addAll(e.tags!);
+        _tagCtrl.text = _selectedTags.join(', ');
+      }
     }
   }
 
   @override
   void dispose() {
     _contentCtrl.dispose();
+    _tagCtrl.dispose();
     super.dispose();
   }
 
@@ -173,6 +178,48 @@ class _EditEntryPageState extends State<EditEntryPage> {
             const SizedBox(height: 12),
             _buildDrawingCanvas(),
             const SizedBox(height: 16),
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 16),
+
+            const Text(
+              'タグ',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8.0,
+              runSpacing: 4.0,
+              children: _allTags.map((tag) {
+                return ChoiceChip(
+                  label: Text(tag),
+                  selected: _selectedTags.contains(tag),
+                  onSelected: (bool selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedTags.add(tag);
+                      } else {
+                        _selectedTags.remove(tag);
+                      }
+                      _tagCtrl.text = _selectedTags.join(', ');
+                    });
+                  },
+                  selectedColor: Theme.of(context).primaryColor,
+                  labelStyle: TextStyle(
+                    color: _selectedTags.contains(tag) ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _tagCtrl,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: '選択されたタグがここに表示されます',
+              ),
+              readOnly: true,
+            ),
             TextFormField(
               controller: _contentCtrl,
               maxLines: 10,
@@ -190,4 +237,8 @@ class _EditEntryPageState extends State<EditEntryPage> {
       ),
     );
   }
+
+  final _tagCtrl = TextEditingController();
+  final List<String> _allTags = ['天気', '気分', '食事', '仕事', '趣味', 'お出かけ'];
+  final Set<String> _selectedTags = <String>{};
 }
