@@ -1,13 +1,18 @@
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:diary/models/activity.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:diary/l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Removed painter package; now using custom DrawingPage with JSON strokes
 
 import '../models/diary_entry.dart';
 import 'drawing_editor.dart';
 import '../services/storage_service.dart';
+import 'snackbar_helper.dart';
 
 class EditEntryPage extends StatefulWidget {
   final DiaryEntry? entry;
@@ -27,13 +32,14 @@ class _EditEntryPageState extends State<EditEntryPage> {
       GlobalKey<DrawingEditorState>();
   
   final _tagCtrl = TextEditingController();
-  final List<String> _allTags = ['天気', '気分', '食事', '仕事', '趣味', 'お出かけ'];
+  List<String> _allTags = [];
   final Set<String> _selectedTags = <String>{};
 
 
   @override
   void initState() {
     super.initState();
+    _loadData();
 
     final e = widget.entry;
     if (e != null) {
@@ -52,6 +58,19 @@ class _EditEntryPageState extends State<EditEntryPage> {
     _contentCtrl.dispose();
     _tagCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String jsonString = prefs.getString('activities_list') ?? '[]';
+    final List<dynamic> decodedList = jsonDecode(jsonString);
+    final loadedActivities = decodedList
+          .map((json) => Activity.fromJson(json))
+          .toList().map((Activity) => Activity.name).toList();;
+
+    setState(() {
+        _allTags = List<String>.from(loadedActivities);
+    });
   }
 
   // Inline drawing editor is used instead of navigating to another page.
@@ -100,6 +119,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
 
     if (!mounted) return;
     Navigator.pop(context, entry);
+    showAppSnackBar(context, _selectedTags.length);
   }
 
   Widget _buildDrawingCanvas() {
@@ -214,18 +234,11 @@ class _EditEntryPageState extends State<EditEntryPage> {
                   labelStyle: TextStyle(
                     color: _selectedTags.contains(tag) ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
                   ),
+                  checkmarkColor: Theme.of(context).colorScheme.onPrimary,
                 );
               }).toList(),
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: _tagCtrl,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: '選択されたタグがここに表示されます',
-              ),
-              readOnly: true,
-            ),
             TextFormField(
               controller: _contentCtrl,
               maxLines: 10,
