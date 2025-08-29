@@ -19,11 +19,9 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bool showActivities = !kReleaseMode;
-
     final List<Widget> pages = [
       const EntriesPage(),
-      if (showActivities) const ActivitiesPage(),
+      const ActivitiesPage(),
       const ReflectionPage(),
     ];
 
@@ -42,11 +40,10 @@ class _MainPageState extends State<MainPage> {
             icon: const Icon(Icons.book),
             label: AppLocalizations.of(context)!.navDiary,
           ),
-          if (showActivities)
-            NavigationDestination(
-              icon: const Icon(Icons.directions_run),
-              label: AppLocalizations.of(context)!.navActivities,
-            ),
+          NavigationDestination(
+            icon: const Icon(Icons.directions_run),
+            label: AppLocalizations.of(context)!.navActivities,
+          ),
           NavigationDestination(
             icon: const Icon(Icons.history),
             label: AppLocalizations.of(context)!.navReflection,
