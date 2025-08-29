@@ -122,6 +122,16 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                 return GestureDetector(
                   onTap: () async {
                     // ... (onTapの処理は変更なし)
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ActivityDetailPage(activity: activity),
+                     ),
+                    );
+
+                    if (result == true) {
+                      _loadActivities();
+                    }
                   },
                   // [変更点1] GridTileの代わりに、自前でレイアウトを構築
                   child: Container(
