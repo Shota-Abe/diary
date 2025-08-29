@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:diary/models/activity.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:diary/l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Removed painter package; now using custom DrawingPage with JSON strokes
 
@@ -21,51 +25,62 @@ class EditEntryPage extends StatefulWidget {
 class _EditEntryPageState extends State<EditEntryPage> {
   final _formKey = GlobalKey<FormState>();
   final _contentCtrl = TextEditingController();
-  final ScrollController _scrollCtrl = ScrollController();
   DateTime _date = DateTime.now();
   Uint8List? _drawingBytes;
   String? _drawingJson; // editable strokes data
   final GlobalKey<DrawingEditorState> _drawingKey =
       GlobalKey<DrawingEditorState>();
+  
+  final _tagCtrl = TextEditingController();
+  List<String> _allTags = [];
+  final Set<String> _selectedTags = <String>{};
+
 
   @override
   void initState() {
     super.initState();
+    _loadData();
 
     final e = widget.entry;
     if (e != null) {
       _contentCtrl.text = e.content;
       _date = e.date;
       _drawingJson = e.drawingJson;
+      if (e.tags.isNotEmpty) {
+        _selectedTags.addAll(e.tags);
+        _tagCtrl.text = _selectedTags.join(', ');
+      }
     }
   }
 
   @override
   void dispose() {
     _contentCtrl.dispose();
-    _scrollCtrl.dispose();
+    _tagCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String jsonString = prefs.getString('activities_list') ?? '[]';
+    final List<dynamic> decodedList = jsonDecode(jsonString);
+    final loadedActivities = decodedList
+          .map((json) => Activity.fromJson(json))
+          .toList().map((Activity) => Activity.name).toList();;
+
+    setState(() {
+        _allTags = List<String>.from(loadedActivities);
+    });
   }
 
   // Inline drawing editor is used instead of navigating to another page.
 
   Future<void> _pickDate() async {
-    final today = DateTime(
-      DateTime.now().year,
-      DateTime.now().month,
-      DateTime.now().day,
-    );
-    final initial = _date.isAfter(today) ? today : _date;
     final d = await showDatePicker(
       context: context,
-      initialDate: initial,
+      initialDate: _date,
       firstDate: DateTime(2000),
-      lastDate: today,
-      selectableDayPredicate: (day) =>
-          day.isBefore(today) ||
-          day.year == today.year &&
-              day.month == today.month &&
-              day.day == today.day,
+      lastDate: DateTime(2100),
     );
     if (d != null) setState(() => _date = d);
   }
@@ -99,15 +114,12 @@ class _EditEntryPageState extends State<EditEntryPage> {
               date: _date,
               content: _contentCtrl.text.trim(),
               drawingJson: drawingJson,
+              tags: _selectedTags.toList(),
             );
 
     if (!mounted) return;
     Navigator.pop(context, entry);
-
-    assert(() {
-      showAppSnackBar(context, 2);
-      return true;
-    }());
+    showAppSnackBar(context, _selectedTags.length);
   }
 
   Widget _buildDrawingCanvas() {
@@ -176,47 +188,70 @@ class _EditEntryPageState extends State<EditEntryPage> {
           const SizedBox(width: 8),
         ],
       ),
-      body: SafeArea(
-        left: true,
-        right: true,
-        top: false,
-        bottom: false,
-        child: Form(
-          key: _formKey,
-          child: Scrollbar(
-            thumbVisibility: true,
-            controller: _scrollCtrl,
-            child: SingleChildScrollView(
-              controller: _scrollCtrl,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: _pickDate,
-                    icon: const Icon(Icons.calendar_today),
-                    label: Text(DateFormat('yyyy/MM/dd').format(_date)),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildDrawingCanvas(),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _contentCtrl,
-                    maxLines: 10,
-                    minLines: 5,
-                    decoration: InputDecoration(
-                      labelText: t.diaryLabel,
-                      border: const OutlineInputBorder(),
-                      hintText: t.diaryHint,
-                    ),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? t.diaryValidator
-                        : null,
-                  ),
-                ],
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            OutlinedButton.icon(
+              onPressed: _pickDate,
+              icon: const Icon(Icons.calendar_today),
+              label: Text(
+                DateFormat('yyyy/MM/dd').format(_date),
+                style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
-          ),
+            const SizedBox(height: 12),
+            _buildDrawingCanvas(),
+            const SizedBox(height: 16),
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 16),
+
+            const Text(
+              'タグ',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8.0,
+              runSpacing: 4.0,
+              children: _allTags.map((tag) {
+                return ChoiceChip(
+                  label: Text(tag),
+                  selected: _selectedTags.contains(tag),
+                  onSelected: (bool selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedTags.add(tag);
+                      } else {
+                        _selectedTags.remove(tag);
+                      }
+                      _tagCtrl.text = _selectedTags.join(', ');
+                    });
+                  },
+                  selectedColor: Theme.of(context).primaryColor,
+                  labelStyle: TextStyle(
+                    color: _selectedTags.contains(tag) ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                  checkmarkColor: Theme.of(context).colorScheme.onPrimary,
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _contentCtrl,
+              maxLines: 10,
+              minLines: 5,
+              decoration: InputDecoration(
+                labelText: t.diaryLabel,
+                border: const OutlineInputBorder(),
+                hintText: t.diaryHint,
+              ),
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? t.diaryValidator : null,
+            ),
+          ],
         ),
       ),
     );

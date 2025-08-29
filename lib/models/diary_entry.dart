@@ -5,12 +5,14 @@ class DiaryEntry {
   final DateTime date;
   final String content;
   final String? drawingJson; // editable strokes data
+  final List<String> tags;
 
   const DiaryEntry({
     required this.id,
     required this.date,
     required this.content,
     this.drawingJson,
+    this.tags = const [],
   });
 
   DiaryEntry copyWith({
@@ -18,12 +20,14 @@ class DiaryEntry {
     DateTime? date,
     String? content,
     String? drawingJson,
+    List<String>? tags, 
   }) {
     return DiaryEntry(
       id: id ?? this.id,
       date: date ?? this.date,
       content: content ?? this.content,
       drawingJson: drawingJson ?? this.drawingJson,
+      tags: tags ?? this.tags,
     );
   }
 
@@ -33,6 +37,7 @@ class DiaryEntry {
       'date': date.toIso8601String(),
       'content': content,
       'drawingJson': drawingJson,
+      'tags': tags,
     };
   }
 
@@ -42,6 +47,7 @@ class DiaryEntry {
       date: DateTime.parse(map['date'] as String),
       content: map['content'] as String,
       drawingJson: map['drawingJson'] as String?,
+      tags: map['tags'] == null ? [] : List<String>.from(map['tags'] as List),
     );
   }
 
