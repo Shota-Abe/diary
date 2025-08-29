@@ -9,13 +9,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  percent_indicator: ^4.2.3
   flutter_localizations:
     sdk: flutter
+  flutter_colorpicker: ^1.1.0
   image_picker: ^1.1.2
   path_provider: ^2.1.4
   shared_preferences: ^2.3.2
   intl: ^0.20.2
   table_calendar: ^3.0.9
+  url_launcher: ^6.3.0
+  date_picker_plus: ^3.0.2
 
 dev_dependencies:
   flutter_test:
@@ -24,3 +28,4 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true

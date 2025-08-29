@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'pages/main_page.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:diary/l10n/app_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 Future<void> main() async {
@@ -15,14 +16,14 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '日記',
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
         useMaterial3: true,
       ),
-      locale: const Locale('ja', 'JP'),
-      supportedLocales: const [Locale('ja', 'JP'), Locale('en', 'US')],
-      localizationsDelegates: const [
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

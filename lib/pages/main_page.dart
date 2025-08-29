@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:diary/l10n/app_localizations.dart';
 
 import 'activities_page.dart';
 import 'entries_page.dart';
+import 'reflection_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -12,23 +15,41 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
-  final _pages = const [EntriesPage(), ActivitiesPage()];
+  // Pages are built dynamically depending on build mode
 
   @override
   Widget build(BuildContext context) {
+    final bool showActivities = !kReleaseMode;
+
+    final List<Widget> pages = [
+      const EntriesPage(),
+      if (showActivities) const ActivitiesPage(),
+      const ReflectionPage(),
+    ];
+
+    int currentIndex = _currentIndex;
+    if (currentIndex >= pages.length) {
+      currentIndex = 0;
+    }
+
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _pages),
+      body: IndexedStack(index: currentIndex, children: pages),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
+        selectedIndex: currentIndex,
         onDestinationSelected: (i) => setState(() => _currentIndex = i),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.book),
-            label: '日記',
+            icon: const Icon(Icons.book),
+            label: AppLocalizations.of(context)!.navDiary,
           ),
+          if (showActivities)
+            NavigationDestination(
+              icon: const Icon(Icons.directions_run),
+              label: AppLocalizations.of(context)!.navActivities,
+            ),
           NavigationDestination(
-            icon: Icon(Icons.directions_run),
-            label: 'アクティビティ',
+            icon: const Icon(Icons.history),
+            label: AppLocalizations.of(context)!.navReflection,
           ),
         ],
       ),
