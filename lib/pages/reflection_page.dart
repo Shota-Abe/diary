@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:date_picker_plus/date_picker_plus.dart';
 import 'package:diary/l10n/app_localizations.dart';
+import 'package:intl/intl.dart' as intl;
 
 import '../models/diary_entry.dart';
 import '../services/storage_service.dart';
@@ -185,48 +186,37 @@ class _ReflectionPageState extends State<ReflectionPage> {
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           children: [
-                            Expanded(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.background,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 8,
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final squareSize =
+                                    constraints.biggest.shortestSide;
+                                return Center(
+                                  child: SizedBox(
+                                    width: squareSize,
+                                    height: squareSize,
+                                    child: DrawingThumbnail(
+                                      drawingJson: e.drawingJson!,
+                                      backgroundColor: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                      size: squareSize,
                                     ),
-                                  ],
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12.0),
-                                  child: DrawingThumbnail(
-                                    drawingJson: e.drawingJson!,
-                                    backgroundColor: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    size: 600,
                                   ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              '${e.date.year}/${e.date.month}/${e.date.day}',
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              intl.DateFormat.yMMMMd(
+                                Localizations.localeOf(context).toString(),
+                              ).format(e.date),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                             ),
                             const SizedBox(height: 6),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12.0,
-                              ),
+                            SingleChildScrollView(
                               child: Text(
                                 e.content,
-                                maxLines: 4,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const SizedBox(height: 12),
                           ],
                         ),
                       );
