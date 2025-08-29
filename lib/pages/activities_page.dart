@@ -83,7 +83,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
         title: const Text('夏休みアクティビティ図鑑'),
         centerTitle: true,
         actions: <Widget>[
-          ElevatedButton(
+          IconButton(
             onPressed: () async {
               await Navigator.push(
                 context,
@@ -91,7 +91,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
               );
               _loadActivities();
             },
-            child: Text('追加'),
+            icon: const Icon(Icons.add),
           ),
         ],
       ),
