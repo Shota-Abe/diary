@@ -94,72 +94,129 @@ class _AddElementDictionaryState extends State<AddElementDictionary> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('アクティビティを追加')),
-
-      body: Container(
-        width: double.infinity,
-        child: Column(
+      appBar: AppBar(
+        title: const Text('アクティビティを追加'),
+        centerTitle: true,
+        actions: [
+          const Spacer(),
+          TextButton(onPressed: _saveActivity, child: const Text('登録')),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: Form(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            Container(
-              padding: const EdgeInsets.all(8.0), // 内側に余白を持たせると見栄えが良くなります
-              decoration: BoxDecoration(
-                // 枠線などをつける場合
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: TextField(
-                controller: _nameController,
-                decoration: InputDecoration(hintText: 'アクティビティ'),
-              ),
+            // アクティビティ名セクション
+            const Text(
+              'アクティビティ名',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-
-            Container(
-              padding: const EdgeInsets.all(8.0), // 内側に余白を持たせると見栄えが良くなります
-              decoration: BoxDecoration(
-                // 枠線などをつける場合
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8.0),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: 'アクティビティ名',
+                border: OutlineInputBorder(),
+                hintText: '例：海で泳ぐ、花火を見る',
               ),
-              child: TextField(
-                controller: _descriptionController,
-                decoration: InputDecoration(hintText: '説明')
-              ),
-            ),
-
-            Container(
-              padding: const EdgeInsets.all(8.0), // 内側に余白を持たせると見栄えが良くなります
-              decoration: BoxDecoration(
-                // 枠線などをつける場合
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      _pickImage();
-                    },
-                    child: Text('アイコンを選択'),
-                  ),
-
-                  _image == null
-                      ? const Text('画像が選択されていません')
-                      : Image.file(
-                          File(_image!.path),
-                          width: 200,
-                          height: 200,
-                          fit: BoxFit.cover,
-                          ),
-                ],
-              ),
-            ),
-
-            ElevatedButton(
-              child: Text('新規登録'),
-              onPressed: () {
-                _saveActivity();
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'アクティビティ名を入力してください';
+                }
+                return null;
               },
             ),
+            const SizedBox(height: 24),
+
+            // 説明セクション
+            const Text(
+              '説明',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _descriptionController,
+              maxLines: 3,
+              minLines: 2,
+              decoration: const InputDecoration(
+                labelText: 'アクティビティの説明',
+                border: OutlineInputBorder(),
+                hintText: 'このアクティビティについて詳しく説明してください',
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return '説明を入力してください';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+
+            const Divider(),
+            const SizedBox(height: 16),
+
+            // アイコン選択セクション
+            const Text(
+              'アイコン',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+
+            OutlinedButton.icon(
+              onPressed: _pickImage,
+              icon: const Icon(Icons.image),
+              label: const Text('画像を選択'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // 選択された画像のプレビュー
+            if (_image != null)
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    File(_image!.path),
+                    width: double.infinity,
+                    height: 200,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              )
+            else
+              Container(
+                width: double.infinity,
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.grey.shade300,
+                    style: BorderStyle.solid,
+                  ),
+                ),
+                child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.image_outlined, size: 48, color: Colors.grey),
+                    SizedBox(height: 8),
+                    Text('画像が選択されていません', style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+              ),
+
+            const SizedBox(height: 32),
           ],
         ),
       ),
