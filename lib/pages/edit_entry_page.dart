@@ -25,6 +25,11 @@ class _EditEntryPageState extends State<EditEntryPage> {
   String? _drawingJson; // editable strokes data
   final GlobalKey<DrawingEditorState> _drawingKey =
       GlobalKey<DrawingEditorState>();
+  
+  final _tagCtrl = TextEditingController();
+  final List<String> _allTags = ['天気', '気分', '食事', '仕事', '趣味', 'お出かけ'];
+  final Set<String> _selectedTags = <String>{};
+
 
   @override
   void initState() {
@@ -35,8 +40,8 @@ class _EditEntryPageState extends State<EditEntryPage> {
       _contentCtrl.text = e.content;
       _date = e.date;
       _drawingJson = e.drawingJson;
-      if (e.tags != null) {
-        _selectedTags.addAll(e.tags!);
+      if (e.tags.isNotEmpty) {
+        _selectedTags.addAll(e.tags);
         _tagCtrl.text = _selectedTags.join(', ');
       }
     }
@@ -90,6 +95,7 @@ class _EditEntryPageState extends State<EditEntryPage> {
               date: _date,
               content: _contentCtrl.text.trim(),
               drawingJson: drawingJson,
+              tags: _selectedTags.toList(),
             );
 
     if (!mounted) return;
@@ -237,8 +243,4 @@ class _EditEntryPageState extends State<EditEntryPage> {
       ),
     );
   }
-
-  final _tagCtrl = TextEditingController();
-  final List<String> _allTags = ['天気', '気分', '食事', '仕事', '趣味', 'お出かけ'];
-  final Set<String> _selectedTags = <String>{};
 }
